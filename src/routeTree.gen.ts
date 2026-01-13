@@ -11,14 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
-import { Route as appReportsRouteImport } from './routes/(app)/Reports'
-import { Route as appProductsRouteImport } from './routes/(app)/Products'
-import { Route as appMovementsRouteImport } from './routes/(app)/Movements'
-import { Route as appInventoryRouteImport } from './routes/(app)/Inventory'
-import { Route as appDashboardRouteImport } from './routes/(app)/Dashboard'
-import { Route as adminStaffRouteImport } from './routes/(admin)/Staff'
-import { Route as adminCategoriesRouteImport } from './routes/(admin)/Categories'
-import { Route as adminBranchesRouteImport } from './routes/(admin)/Branches'
+import { Route as appStockMovementsRouteImport } from './routes/(app)/stock-movements'
+import { Route as appReportsRouteImport } from './routes/(app)/reports'
+import { Route as appInventoryRouteImport } from './routes/(app)/inventory'
+import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
+import { Route as adminStaffRouteImport } from './routes/(admin)/staff'
+import { Route as adminCategoriesRouteImport } from './routes/(admin)/categories'
+import { Route as adminBranchesRouteImport } from './routes/(admin)/branches'
+import { Route as appProductsRouteRouteImport } from './routes/(app)/products/route'
+import { Route as appProductsIdRouteImport } from './routes/(app)/products/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,133 +31,144 @@ const authLoginRoute = authLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const appStockMovementsRoute = appStockMovementsRouteImport.update({
+  id: '/(app)/stock-movements',
+  path: '/stock-movements',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const appReportsRoute = appReportsRouteImport.update({
-  id: '/(app)/Reports',
-  path: '/Reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const appProductsRoute = appProductsRouteImport.update({
-  id: '/(app)/Products',
-  path: '/Products',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const appMovementsRoute = appMovementsRouteImport.update({
-  id: '/(app)/Movements',
-  path: '/Movements',
+  id: '/(app)/reports',
+  path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const appInventoryRoute = appInventoryRouteImport.update({
-  id: '/(app)/Inventory',
-  path: '/Inventory',
+  id: '/(app)/inventory',
+  path: '/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const appDashboardRoute = appDashboardRouteImport.update({
-  id: '/(app)/Dashboard',
-  path: '/Dashboard',
+  id: '/(app)/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const adminStaffRoute = adminStaffRouteImport.update({
-  id: '/(admin)/Staff',
-  path: '/Staff',
+  id: '/(admin)/staff',
+  path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
 const adminCategoriesRoute = adminCategoriesRouteImport.update({
-  id: '/(admin)/Categories',
-  path: '/Categories',
+  id: '/(admin)/categories',
+  path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const adminBranchesRoute = adminBranchesRouteImport.update({
-  id: '/(admin)/Branches',
-  path: '/Branches',
+  id: '/(admin)/branches',
+  path: '/branches',
   getParentRoute: () => rootRouteImport,
+} as any)
+const appProductsRouteRoute = appProductsRouteRouteImport.update({
+  id: '/(app)/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const appProductsIdRoute = appProductsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => appProductsRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/Branches': typeof adminBranchesRoute
-  '/Categories': typeof adminCategoriesRoute
-  '/Staff': typeof adminStaffRoute
-  '/Dashboard': typeof appDashboardRoute
-  '/Inventory': typeof appInventoryRoute
-  '/Movements': typeof appMovementsRoute
-  '/Products': typeof appProductsRoute
-  '/Reports': typeof appReportsRoute
+  '/products': typeof appProductsRouteRouteWithChildren
+  '/branches': typeof adminBranchesRoute
+  '/categories': typeof adminCategoriesRoute
+  '/staff': typeof adminStaffRoute
+  '/dashboard': typeof appDashboardRoute
+  '/inventory': typeof appInventoryRoute
+  '/reports': typeof appReportsRoute
+  '/stock-movements': typeof appStockMovementsRoute
   '/login': typeof authLoginRoute
+  '/products/$id': typeof appProductsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/Branches': typeof adminBranchesRoute
-  '/Categories': typeof adminCategoriesRoute
-  '/Staff': typeof adminStaffRoute
-  '/Dashboard': typeof appDashboardRoute
-  '/Inventory': typeof appInventoryRoute
-  '/Movements': typeof appMovementsRoute
-  '/Products': typeof appProductsRoute
-  '/Reports': typeof appReportsRoute
+  '/products': typeof appProductsRouteRouteWithChildren
+  '/branches': typeof adminBranchesRoute
+  '/categories': typeof adminCategoriesRoute
+  '/staff': typeof adminStaffRoute
+  '/dashboard': typeof appDashboardRoute
+  '/inventory': typeof appInventoryRoute
+  '/reports': typeof appReportsRoute
+  '/stock-movements': typeof appStockMovementsRoute
   '/login': typeof authLoginRoute
+  '/products/$id': typeof appProductsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/(admin)/Branches': typeof adminBranchesRoute
-  '/(admin)/Categories': typeof adminCategoriesRoute
-  '/(admin)/Staff': typeof adminStaffRoute
-  '/(app)/Dashboard': typeof appDashboardRoute
-  '/(app)/Inventory': typeof appInventoryRoute
-  '/(app)/Movements': typeof appMovementsRoute
-  '/(app)/Products': typeof appProductsRoute
-  '/(app)/Reports': typeof appReportsRoute
+  '/(app)/products': typeof appProductsRouteRouteWithChildren
+  '/(admin)/branches': typeof adminBranchesRoute
+  '/(admin)/categories': typeof adminCategoriesRoute
+  '/(admin)/staff': typeof adminStaffRoute
+  '/(app)/dashboard': typeof appDashboardRoute
+  '/(app)/inventory': typeof appInventoryRoute
+  '/(app)/reports': typeof appReportsRoute
+  '/(app)/stock-movements': typeof appStockMovementsRoute
   '/(auth)/login': typeof authLoginRoute
+  '/(app)/products/$id': typeof appProductsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/Branches'
-    | '/Categories'
-    | '/Staff'
-    | '/Dashboard'
-    | '/Inventory'
-    | '/Movements'
-    | '/Products'
-    | '/Reports'
+    | '/products'
+    | '/branches'
+    | '/categories'
+    | '/staff'
+    | '/dashboard'
+    | '/inventory'
+    | '/reports'
+    | '/stock-movements'
     | '/login'
+    | '/products/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/Branches'
-    | '/Categories'
-    | '/Staff'
-    | '/Dashboard'
-    | '/Inventory'
-    | '/Movements'
-    | '/Products'
-    | '/Reports'
+    | '/products'
+    | '/branches'
+    | '/categories'
+    | '/staff'
+    | '/dashboard'
+    | '/inventory'
+    | '/reports'
+    | '/stock-movements'
     | '/login'
+    | '/products/$id'
   id:
     | '__root__'
     | '/'
-    | '/(admin)/Branches'
-    | '/(admin)/Categories'
-    | '/(admin)/Staff'
-    | '/(app)/Dashboard'
-    | '/(app)/Inventory'
-    | '/(app)/Movements'
-    | '/(app)/Products'
-    | '/(app)/Reports'
+    | '/(app)/products'
+    | '/(admin)/branches'
+    | '/(admin)/categories'
+    | '/(admin)/staff'
+    | '/(app)/dashboard'
+    | '/(app)/inventory'
+    | '/(app)/reports'
+    | '/(app)/stock-movements'
     | '/(auth)/login'
+    | '/(app)/products/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  appProductsRouteRoute: typeof appProductsRouteRouteWithChildren
   adminBranchesRoute: typeof adminBranchesRoute
   adminCategoriesRoute: typeof adminCategoriesRoute
   adminStaffRoute: typeof adminStaffRoute
   appDashboardRoute: typeof appDashboardRoute
   appInventoryRoute: typeof appInventoryRoute
-  appMovementsRoute: typeof appMovementsRoute
-  appProductsRoute: typeof appProductsRoute
   appReportsRoute: typeof appReportsRoute
+  appStockMovementsRoute: typeof appStockMovementsRoute
   authLoginRoute: typeof authLoginRoute
 }
 
@@ -176,75 +188,93 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/Reports': {
-      id: '/(app)/Reports'
-      path: '/Reports'
-      fullPath: '/Reports'
+    '/(app)/stock-movements': {
+      id: '/(app)/stock-movements'
+      path: '/stock-movements'
+      fullPath: '/stock-movements'
+      preLoaderRoute: typeof appStockMovementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(app)/reports': {
+      id: '/(app)/reports'
+      path: '/reports'
+      fullPath: '/reports'
       preLoaderRoute: typeof appReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/Products': {
-      id: '/(app)/Products'
-      path: '/Products'
-      fullPath: '/Products'
-      preLoaderRoute: typeof appProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(app)/Movements': {
-      id: '/(app)/Movements'
-      path: '/Movements'
-      fullPath: '/Movements'
-      preLoaderRoute: typeof appMovementsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(app)/Inventory': {
-      id: '/(app)/Inventory'
-      path: '/Inventory'
-      fullPath: '/Inventory'
+    '/(app)/inventory': {
+      id: '/(app)/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
       preLoaderRoute: typeof appInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/Dashboard': {
-      id: '/(app)/Dashboard'
-      path: '/Dashboard'
-      fullPath: '/Dashboard'
+    '/(app)/dashboard': {
+      id: '/(app)/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
       preLoaderRoute: typeof appDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(admin)/Staff': {
-      id: '/(admin)/Staff'
-      path: '/Staff'
-      fullPath: '/Staff'
+    '/(admin)/staff': {
+      id: '/(admin)/staff'
+      path: '/staff'
+      fullPath: '/staff'
       preLoaderRoute: typeof adminStaffRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(admin)/Categories': {
-      id: '/(admin)/Categories'
-      path: '/Categories'
-      fullPath: '/Categories'
+    '/(admin)/categories': {
+      id: '/(admin)/categories'
+      path: '/categories'
+      fullPath: '/categories'
       preLoaderRoute: typeof adminCategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(admin)/Branches': {
-      id: '/(admin)/Branches'
-      path: '/Branches'
-      fullPath: '/Branches'
+    '/(admin)/branches': {
+      id: '/(admin)/branches'
+      path: '/branches'
+      fullPath: '/branches'
       preLoaderRoute: typeof adminBranchesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(app)/products': {
+      id: '/(app)/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof appProductsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(app)/products/$id': {
+      id: '/(app)/products/$id'
+      path: '/$id'
+      fullPath: '/products/$id'
+      preLoaderRoute: typeof appProductsIdRouteImport
+      parentRoute: typeof appProductsRouteRoute
     }
   }
 }
 
+interface appProductsRouteRouteChildren {
+  appProductsIdRoute: typeof appProductsIdRoute
+}
+
+const appProductsRouteRouteChildren: appProductsRouteRouteChildren = {
+  appProductsIdRoute: appProductsIdRoute,
+}
+
+const appProductsRouteRouteWithChildren =
+  appProductsRouteRoute._addFileChildren(appProductsRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  appProductsRouteRoute: appProductsRouteRouteWithChildren,
   adminBranchesRoute: adminBranchesRoute,
   adminCategoriesRoute: adminCategoriesRoute,
   adminStaffRoute: adminStaffRoute,
   appDashboardRoute: appDashboardRoute,
   appInventoryRoute: appInventoryRoute,
-  appMovementsRoute: appMovementsRoute,
-  appProductsRoute: appProductsRoute,
   appReportsRoute: appReportsRoute,
+  appStockMovementsRoute: appStockMovementsRoute,
   authLoginRoute: authLoginRoute,
 }
 export const routeTree = rootRouteImport

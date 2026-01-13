@@ -3,10 +3,11 @@ import {
   Scripts,
   createRootRouteWithContext,
   Outlet,
+  useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-
+import { navLinks, NavKey } from '@/components/layout/navLinks'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
@@ -43,9 +44,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootComponent,
 })
 function RootComponent() {
+  const location = useLocation()
+  const pathname = location.pathname.split('/')[1]
+
   return (
     <RootDocument>
-      <DashboardLayout>
+      <DashboardLayout title={navLinks[pathname as NavKey].title}>
         <Outlet />
       </DashboardLayout>
     </RootDocument>

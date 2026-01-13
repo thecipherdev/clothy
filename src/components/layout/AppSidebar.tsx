@@ -30,7 +30,7 @@ const mainMenuItems = [
   { title: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { title: 'Products', icon: ShoppingBag, href: '/products' },
   { title: 'Inventory', icon: Boxes, href: '/inventory' },
-  { title: 'Stock Movements', icon: ArrowLeftRight, href: '/movements' },
+  { title: 'Stock Movements', icon: ArrowLeftRight, href: '/stock-movements' },
   { title: 'Reports', icon: BarChart3, href: '/reports' },
 ];
 
