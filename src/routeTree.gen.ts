@@ -13,8 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as appStockMovementsRouteImport } from './routes/(app)/stock-movements'
 import { Route as appReportsRouteImport } from './routes/(app)/reports'
-import { Route as appInventoryRouteImport } from './routes/(app)/inventory'
-import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
+import { Route as appInventoryRouteImport } from './routes/(app)/Inventory'
+import { Route as appDashboardRouteImport } from './routes/(app)/Dashboard'
 import { Route as adminStaffRouteImport } from './routes/(admin)/staff'
 import { Route as adminCategoriesRouteImport } from './routes/(admin)/categories'
 import { Route as adminBranchesRouteImport } from './routes/(admin)/branches'
@@ -42,13 +42,13 @@ const appReportsRoute = appReportsRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const appInventoryRoute = appInventoryRouteImport.update({
-  id: '/(app)/inventory',
-  path: '/inventory',
+  id: '/(app)/Inventory',
+  path: '/Inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const appDashboardRoute = appDashboardRouteImport.update({
-  id: '/(app)/dashboard',
-  path: '/dashboard',
+  id: '/(app)/Dashboard',
+  path: '/Dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const adminStaffRoute = adminStaffRouteImport.update({
@@ -83,8 +83,8 @@ export interface FileRoutesByFullPath {
   '/branches': typeof adminBranchesRoute
   '/categories': typeof adminCategoriesRoute
   '/staff': typeof adminStaffRoute
-  '/dashboard': typeof appDashboardRoute
-  '/inventory': typeof appInventoryRoute
+  '/Dashboard': typeof appDashboardRoute
+  '/Inventory': typeof appInventoryRoute
   '/reports': typeof appReportsRoute
   '/stock-movements': typeof appStockMovementsRoute
   '/login': typeof authLoginRoute
@@ -96,8 +96,8 @@ export interface FileRoutesByTo {
   '/branches': typeof adminBranchesRoute
   '/categories': typeof adminCategoriesRoute
   '/staff': typeof adminStaffRoute
-  '/dashboard': typeof appDashboardRoute
-  '/inventory': typeof appInventoryRoute
+  '/Dashboard': typeof appDashboardRoute
+  '/Inventory': typeof appInventoryRoute
   '/reports': typeof appReportsRoute
   '/stock-movements': typeof appStockMovementsRoute
   '/login': typeof authLoginRoute
@@ -110,8 +110,8 @@ export interface FileRoutesById {
   '/(admin)/branches': typeof adminBranchesRoute
   '/(admin)/categories': typeof adminCategoriesRoute
   '/(admin)/staff': typeof adminStaffRoute
-  '/(app)/dashboard': typeof appDashboardRoute
-  '/(app)/inventory': typeof appInventoryRoute
+  '/(app)/Dashboard': typeof appDashboardRoute
+  '/(app)/Inventory': typeof appInventoryRoute
   '/(app)/reports': typeof appReportsRoute
   '/(app)/stock-movements': typeof appStockMovementsRoute
   '/(auth)/login': typeof authLoginRoute
@@ -125,8 +125,8 @@ export interface FileRouteTypes {
     | '/branches'
     | '/categories'
     | '/staff'
-    | '/dashboard'
-    | '/inventory'
+    | '/Dashboard'
+    | '/Inventory'
     | '/reports'
     | '/stock-movements'
     | '/login'
@@ -138,8 +138,8 @@ export interface FileRouteTypes {
     | '/branches'
     | '/categories'
     | '/staff'
-    | '/dashboard'
-    | '/inventory'
+    | '/Dashboard'
+    | '/Inventory'
     | '/reports'
     | '/stock-movements'
     | '/login'
@@ -151,8 +151,8 @@ export interface FileRouteTypes {
     | '/(admin)/branches'
     | '/(admin)/categories'
     | '/(admin)/staff'
-    | '/(app)/dashboard'
-    | '/(app)/inventory'
+    | '/(app)/Dashboard'
+    | '/(app)/Inventory'
     | '/(app)/reports'
     | '/(app)/stock-movements'
     | '/(auth)/login'
@@ -202,17 +202,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/inventory': {
-      id: '/(app)/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
+    '/(app)/Inventory': {
+      id: '/(app)/Inventory'
+      path: '/Inventory'
+      fullPath: '/Inventory'
       preLoaderRoute: typeof appInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/dashboard': {
-      id: '/(app)/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
+    '/(app)/Dashboard': {
+      id: '/(app)/Dashboard'
+      path: '/Dashboard'
+      fullPath: '/Dashboard'
       preLoaderRoute: typeof appDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
