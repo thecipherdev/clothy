@@ -1,9 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-// import { useAuth } from '@/hooks/useAuth';
 import { Package, Store, AlertTriangle, ArrowLeftRight } from 'lucide-react';
 
 interface DashboardStats {
@@ -36,7 +34,6 @@ export const Route = createFileRoute('/(app)/dashboard')({
 
 function RouteComponent() {
 
-  // const { role } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     totalBranches: 0,
@@ -76,8 +73,6 @@ function RouteComponent() {
               product:products(name)
             )
           `)
-          .lt('quantity', 10)
-
 
         // Filter low stock items where quantity < threshold
         const lowStockFiltered = (lowStock || []).filter(

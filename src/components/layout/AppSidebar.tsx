@@ -1,5 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router';
-// import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Sidebar,
   SidebarContent,
@@ -42,12 +42,8 @@ const adminMenuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  // const { signOut, role, user } = useAuth();
+  const { signOut, role, user } = useAuth();
 
-
-  function signOut() {
-    console.log('signout')
-  }
 
   const isActive = (href: string) => location.pathname === href;
 
@@ -81,7 +77,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {true && (
+        {role === 'admin' && (
           <SidebarGroup>
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -105,8 +101,8 @@ export function AppSidebar() {
       <SidebarFooter className="border-t p-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-sm font-medium">{'email.com'}</span>
-            <span className="text-xs text-muted-foreground capitalize">{'admin'}</span>
+            <span className="text-sm font-medium">{user?.email}</span>
+            <span className="text-xs text-muted-foreground capitalize">{role}</span>
           </div>
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
