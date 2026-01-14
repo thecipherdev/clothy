@@ -6,11 +6,10 @@ import * as z from 'zod'
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Shirt } from 'lucide-react';
-import { FieldGroup, FieldLabel } from '@/components/ui/field';
+import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
 
 export const Route = createFileRoute('/(auth)/login')({
   component: RouteComponent,
@@ -45,7 +44,6 @@ function RouteComponent() {
       console.log('error', error)
 
       if (error) {
-        alert(error)
         toast.error(error.message);
       } else {
         toast.success('Welcome back!');
@@ -79,6 +77,7 @@ function RouteComponent() {
               <form.Field
                 name="email"
                 children={(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                   return (
                     <div className="space-y-2">
                       <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -91,6 +90,10 @@ function RouteComponent() {
                         placeholder="you@example.com"
                         onChange={(e) => field.handleChange(e.target.value)}
                       />
+
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
                     </div>
                   )
                 }}
@@ -98,9 +101,10 @@ function RouteComponent() {
               <form.Field
                 name="password"
                 children={(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                   return (
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
+                      <FieldLabel htmlFor="password">Password</FieldLabel>
                       <Input
                         className="rounded"
                         id={field.name}
@@ -110,6 +114,10 @@ function RouteComponent() {
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                       />
+
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
                     </div>
                   )
                 }}

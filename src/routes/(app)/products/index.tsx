@@ -1,5 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router';
+import { useForm } from '@tanstack/react-form-start';
 import { useEffect, useState } from 'react';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -28,10 +30,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Field, FieldLabel, FieldGroup } from '@/components/ui/field'
+
+
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, ShoppingBag, Search, Eye } from 'lucide-react';
-// import { useAuth } from '@/hooks/useAuth';
 import { Link } from '@tanstack/react-router';
 
 
@@ -55,12 +60,22 @@ interface Product {
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const COLORS = ['Black', 'White', 'Navy', 'Gray', 'Red', 'Blue', 'Green', 'Brown', 'Beige', 'Pink'];
 
+const formSchema = z.object({
+  sku: z.string(),
+  name: z.string(),
+  price: z.number().gte(0),
+  categories: z.string().optional(),
+  description: z.string().optional(),
+  sizes: z.enum(SIZES).optional(),
+  colors: z.enum(COLORS).optional(),
+})
+
 export const Route = createFileRoute('/(app)/products/')({
   component: RouteComponent,
   loader: async () => {
     const { data: products } = await supabase
       .from('products')
-      .select('*')
+      .select('*, categories(*)')
     return {
       products,
     }
@@ -69,7 +84,85 @@ export const Route = createFileRoute('/(app)/products/')({
 
 
 function RouteComponent() {
-  // const { role } = useAuth();
+  const form = useForm({
+    defaultValues: {
+      sku: "",
+    },
+    validators: {
+      onSubmit: formSchema
+    },
+    onSubmit: async () => {
+      try {
+        if (editingProduct) {
+          const { error } = await supabase
+            .from('products')
+            .update({
+              sku: formData.sku,
+              name: formData.name,
+              description: formData.description || null,
+              price: parseFloat(formData.price),
+              category_id: formData.category_id || null,
+            })
+            .eq('id', editingProduct.id);
+
+          if (error) throw error;
+
+          // Update variants - delete existing and create new
+          await supabase
+            .from('product_variants')
+            .delete()
+            .eq('product_id', editingProduct.id);
+
+          if (formData.sizes.length > 0 && formData.colors.length > 0) {
+            const variants = formData.sizes.flatMap((size) =>
+              formData.colors.map((color) => ({
+                product_id: editingProduct.id,
+                size,
+                color,
+              }))
+            );
+            await supabase.from('product_variants').insert(variants);
+          }
+
+          toast.success('Product updated successfully');
+        } else {
+          const { data: newProduct, error } = await supabase
+            .from('products')
+            .insert({
+              sku: formData.sku,
+              name: formData.name,
+              description: formData.description || null,
+              price: parseFloat(formData.price),
+              category_id: formData.category_id || null,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          // Create variants
+          if (formData.sizes.length > 0 && formData.colors.length > 0) {
+            const variants = formData.sizes.flatMap((size) =>
+              formData.colors.map((color) => ({
+                product_id: newProduct.id,
+                size,
+                color,
+              }))
+            );
+            await supabase.from('product_variants').insert(variants);
+          }
+
+          toast.success('Product created successfully');
+        }
+
+        setIsDialogOpen(false);
+        fetchProducts();
+      } catch (error: any) {
+        console.error('Error saving product:', error);
+        toast.error(error.message || 'Failed to save product');
+      }
+    }
+  })
   const { products } = Route.useLoaderData()
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,80 +249,6 @@ function RouteComponent() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (editingProduct) {
-        const { error } = await supabase
-          .from('products')
-          .update({
-            sku: formData.sku,
-            name: formData.name,
-            description: formData.description || null,
-            price: parseFloat(formData.price),
-            category_id: formData.category_id || null,
-          })
-          .eq('id', editingProduct.id);
-
-        if (error) throw error;
-
-        // Update variants - delete existing and create new
-        await supabase
-          .from('product_variants')
-          .delete()
-          .eq('product_id', editingProduct.id);
-
-        if (formData.sizes.length > 0 && formData.colors.length > 0) {
-          const variants = formData.sizes.flatMap((size) =>
-            formData.colors.map((color) => ({
-              product_id: editingProduct.id,
-              size,
-              color,
-            }))
-          );
-          await supabase.from('product_variants').insert(variants);
-        }
-
-        toast.success('Product updated successfully');
-      } else {
-        const { data: newProduct, error } = await supabase
-          .from('products')
-          .insert({
-            sku: formData.sku,
-            name: formData.name,
-            description: formData.description || null,
-            price: parseFloat(formData.price),
-            category_id: formData.category_id || null,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        // Create variants
-        if (formData.sizes.length > 0 && formData.colors.length > 0) {
-          const variants = formData.sizes.flatMap((size) =>
-            formData.colors.map((color) => ({
-              product_id: newProduct.id,
-              size,
-              color,
-            }))
-          );
-          await supabase.from('product_variants').insert(variants);
-        }
-
-        toast.success('Product created successfully');
-      }
-
-      setIsDialogOpen(false);
-      fetchProducts();
-    } catch (error: any) {
-      console.error('Error saving product:', error);
-      toast.error(error.message || 'Failed to save product');
-    }
-  };
-
   const toggleSize = (size: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -258,10 +277,10 @@ function RouteComponent() {
   });
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button onClick={() => handleOpenDialog()}>
+          <Button className="ml-auto w-fit" onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
@@ -272,117 +291,126 @@ function RouteComponent() {
               {editingProduct ? 'Edit Product' : 'Add New Product'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={(e: React.FormEvent) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }} className="space-y-4">
+            <Field>
+              <FieldGroup className="grid grid-cols-2 gap-4">
+                <form.Field
+                  name="sku"
+                  children={(field) => (
+                    <div className="space-y-2">
+                      <FieldLabel htmlFor="sku">SKU</FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
+                />
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+              </FieldGroup>
               <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
+                <Label htmlFor="name">Product Name</Label>
                 <Input
-                  id="sku"
-                  value={formData.sku}
+                  id="name"
+                  value={formData.name}
                   onChange={(e) =>
-                    setFormData({ ...formData, sku: e.target.value })
+                    setFormData({ ...formData, name: e.target.value })
                   }
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: e.target.value })
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={formData.category_id}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category_id: value })
                   }
-                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  rows={3}
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category_id}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, category_id: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
+              <div className="space-y-2">
+                <Label>Sizes</Label>
+                <div className="flex flex-wrap gap-2">
+                  {SIZES.map((size) => (
+                    <Badge
+                      key={size}
+                      variant={formData.sizes.includes(size) ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => toggleSize(size)}
+                    >
+                      {size}
+                    </Badge>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Sizes</Label>
-              <div className="flex flex-wrap gap-2">
-                {SIZES.map((size) => (
-                  <Badge
-                    key={size}
-                    variant={formData.sizes.includes(size) ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => toggleSize(size)}
-                  >
-                    {size}
-                  </Badge>
-                ))}
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Colors</Label>
-              <div className="flex flex-wrap gap-2">
-                {COLORS.map((color) => (
-                  <Badge
-                    key={color}
-                    variant={formData.colors.includes(color) ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => toggleColor(color)}
-                  >
-                    {color}
-                  </Badge>
-                ))}
+              <div className="space-y-2">
+                <Label>Colors</Label>
+                <div className="flex flex-wrap gap-2">
+                  {COLORS.map((color) => (
+                    <Badge
+                      key={color}
+                      variant={formData.colors.includes(color) ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => toggleColor(color)}
+                    >
+                      {color}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                {editingProduct ? 'Update' : 'Create'}
-              </Button>
-            </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {editingProduct ? 'Update' : 'Create'}
+                </Button>
+              </div>
+            </Field>
           </form>
         </DialogContent>
       </Dialog>
