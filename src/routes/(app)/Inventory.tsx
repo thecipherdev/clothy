@@ -50,7 +50,7 @@ interface InventoryItem {
   };
 }
 
-export const Route = createFileRoute('/(app)/Inventory')({
+export const Route = createFileRoute('/(app)/inventory')({
   component: RouteComponent,
 })
 

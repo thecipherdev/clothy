@@ -6,6 +6,7 @@ import {
   useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { FormDevtoolsPanel } from '@tanstack/react-form-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { navLinks, NavKey } from '@/components/layout/navLinks'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
@@ -81,6 +82,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             {
               name: 'Tanstack Router',
               render: <TanStackRouterDevtoolsPanel />,
+            },
+            {
+              name: 'Tanstack Form',
+              render: <FormDevtoolsPanel />
             },
             TanStackQueryDevtools,
           ]}
