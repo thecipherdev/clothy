@@ -28,7 +28,7 @@ interface RecentMovement {
 }
 
 
-export const Route = createFileRoute('/(app)/dashboard')({
+export const Route = createFileRoute('/(app)/Dashboard')({
   component: RouteComponent,
 })
 
