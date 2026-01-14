@@ -14,6 +14,7 @@ import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { AuthProvider } from '@/hooks/useAuth'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -30,7 +31,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Clothy',
       },
     ],
     links: [
@@ -45,13 +46,21 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 function RootComponent() {
   const location = useLocation()
-  const pathname = location.pathname.split('/')[1]
+  const pathname = location.pathname.split('/')
+  const title = pathname[1] === 'products' && pathname.length === 3 ? 'Product Details' : navLinks[pathname[1] as NavKey]?.title
 
   return (
     <RootDocument>
-      <DashboardLayout title={navLinks[pathname as NavKey].title}>
-        <Outlet />
-      </DashboardLayout>
+      <AuthProvider>
+        {pathname[1] === 'login' || pathname[1] === 'signup'
+          ? <Outlet />
+          : (
+            <DashboardLayout title={title}>
+              <Outlet />
+            </DashboardLayout>
+          )
+        }
+      </AuthProvider>
     </RootDocument>
   )
 }

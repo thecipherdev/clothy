@@ -9,31 +9,30 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { Package } from 'lucide-react';
 
-export const Route = createFileRoute('/(auth)/login')({
+export const Route = createFileRoute('/(auth)/signup')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(email, password);
-    console.log('error', error)
+    const { error } = await signUp(email, password, fullName);
 
     if (error) {
-      alert(error)
       toast.error(error.message);
     } else {
-      toast.success('Welcome back!');
+      toast.success('Account created successfully!');
       navigate({
-        to: '/dashboard',
+        to: '/dashboard'
       });
     }
 
@@ -49,11 +48,22 @@ function RouteComponent() {
               <Package className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription>Sign in to your inventory account</CardDescription>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardDescription>Get started with your inventory system</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -74,17 +84,18 @@ function RouteComponent() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Creating account...' : 'Create account'}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-primary hover:underline">
-                Sign up
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary hover:underline">
+                Sign in
               </Link>
             </p>
           </CardFooter>

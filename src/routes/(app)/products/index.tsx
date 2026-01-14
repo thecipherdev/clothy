@@ -55,7 +55,7 @@ interface Product {
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const COLORS = ['Black', 'White', 'Navy', 'Gray', 'Red', 'Blue', 'Green', 'Brown', 'Beige', 'Pink'];
 
-export const Route = createFileRoute('/(app)/products')({
+export const Route = createFileRoute('/(app)/products/')({
   component: RouteComponent,
   loader: async () => {
     const { data: products } = await supabase
@@ -248,7 +248,7 @@ function RouteComponent() {
     }));
   };
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = products?.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase());

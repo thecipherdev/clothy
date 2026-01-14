@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Navigate } from '@tanstack/react-router';
-// import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { Separator } from '@/components/ui/separator';
@@ -12,9 +12,9 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, actions }: DashboardLayoutProps) {
-  // const { user, loading } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (false) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -22,7 +22,7 @@ export function DashboardLayout({ children, title, actions }: DashboardLayoutPro
     );
   }
 
-  if (false) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 

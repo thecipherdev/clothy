@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as authSignupRouteImport } from './routes/(auth)/signup'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as appStockMovementsRouteImport } from './routes/(app)/stock-movements'
 import { Route as appReportsRouteImport } from './routes/(app)/reports'
@@ -18,12 +19,17 @@ import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
 import { Route as adminStaffRouteImport } from './routes/(admin)/staff'
 import { Route as adminCategoriesRouteImport } from './routes/(admin)/categories'
 import { Route as adminBranchesRouteImport } from './routes/(admin)/branches'
-import { Route as appProductsRouteRouteImport } from './routes/(app)/products/route'
-import { Route as appProductsIdRouteImport } from './routes/(app)/products/$id'
+import { Route as appProductsIndexRouteImport } from './routes/(app)/products/index'
+import { Route as appProductsProductIdRouteImport } from './routes/(app)/products/$productId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authSignupRoute = authSignupRouteImport.update({
+  id: '/(auth)/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const authLoginRoute = authLoginRouteImport.update({
@@ -66,20 +72,19 @@ const adminBranchesRoute = adminBranchesRouteImport.update({
   path: '/branches',
   getParentRoute: () => rootRouteImport,
 } as any)
-const appProductsRouteRoute = appProductsRouteRouteImport.update({
-  id: '/(app)/products',
-  path: '/products',
+const appProductsIndexRoute = appProductsIndexRouteImport.update({
+  id: '/(app)/products/',
+  path: '/products/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const appProductsIdRoute = appProductsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => appProductsRouteRoute,
+const appProductsProductIdRoute = appProductsProductIdRouteImport.update({
+  id: '/(app)/products/$productId',
+  path: '/products/$productId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/products': typeof appProductsRouteRouteWithChildren
   '/branches': typeof adminBranchesRoute
   '/categories': typeof adminCategoriesRoute
   '/staff': typeof adminStaffRoute
@@ -88,11 +93,12 @@ export interface FileRoutesByFullPath {
   '/reports': typeof appReportsRoute
   '/stock-movements': typeof appStockMovementsRoute
   '/login': typeof authLoginRoute
-  '/products/$id': typeof appProductsIdRoute
+  '/signup': typeof authSignupRoute
+  '/products/$productId': typeof appProductsProductIdRoute
+  '/products': typeof appProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/products': typeof appProductsRouteRouteWithChildren
   '/branches': typeof adminBranchesRoute
   '/categories': typeof adminCategoriesRoute
   '/staff': typeof adminStaffRoute
@@ -101,12 +107,13 @@ export interface FileRoutesByTo {
   '/reports': typeof appReportsRoute
   '/stock-movements': typeof appStockMovementsRoute
   '/login': typeof authLoginRoute
-  '/products/$id': typeof appProductsIdRoute
+  '/signup': typeof authSignupRoute
+  '/products/$productId': typeof appProductsProductIdRoute
+  '/products': typeof appProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/(app)/products': typeof appProductsRouteRouteWithChildren
   '/(admin)/branches': typeof adminBranchesRoute
   '/(admin)/categories': typeof adminCategoriesRoute
   '/(admin)/staff': typeof adminStaffRoute
@@ -115,13 +122,14 @@ export interface FileRoutesById {
   '/(app)/reports': typeof appReportsRoute
   '/(app)/stock-movements': typeof appStockMovementsRoute
   '/(auth)/login': typeof authLoginRoute
-  '/(app)/products/$id': typeof appProductsIdRoute
+  '/(auth)/signup': typeof authSignupRoute
+  '/(app)/products/$productId': typeof appProductsProductIdRoute
+  '/(app)/products/': typeof appProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/products'
     | '/branches'
     | '/categories'
     | '/staff'
@@ -130,11 +138,12 @@ export interface FileRouteTypes {
     | '/reports'
     | '/stock-movements'
     | '/login'
-    | '/products/$id'
+    | '/signup'
+    | '/products/$productId'
+    | '/products'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/products'
     | '/branches'
     | '/categories'
     | '/staff'
@@ -143,11 +152,12 @@ export interface FileRouteTypes {
     | '/reports'
     | '/stock-movements'
     | '/login'
-    | '/products/$id'
+    | '/signup'
+    | '/products/$productId'
+    | '/products'
   id:
     | '__root__'
     | '/'
-    | '/(app)/products'
     | '/(admin)/branches'
     | '/(admin)/categories'
     | '/(admin)/staff'
@@ -156,12 +166,13 @@ export interface FileRouteTypes {
     | '/(app)/reports'
     | '/(app)/stock-movements'
     | '/(auth)/login'
-    | '/(app)/products/$id'
+    | '/(auth)/signup'
+    | '/(app)/products/$productId'
+    | '/(app)/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  appProductsRouteRoute: typeof appProductsRouteRouteWithChildren
   adminBranchesRoute: typeof adminBranchesRoute
   adminCategoriesRoute: typeof adminCategoriesRoute
   adminStaffRoute: typeof adminStaffRoute
@@ -170,6 +181,9 @@ export interface RootRouteChildren {
   appReportsRoute: typeof appReportsRoute
   appStockMovementsRoute: typeof appStockMovementsRoute
   authLoginRoute: typeof authLoginRoute
+  authSignupRoute: typeof authSignupRoute
+  appProductsProductIdRoute: typeof appProductsProductIdRoute
+  appProductsIndexRoute: typeof appProductsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -179,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/signup': {
+      id: '/(auth)/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof authSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(auth)/login': {
@@ -237,37 +258,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminBranchesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/products': {
-      id: '/(app)/products'
+    '/(app)/products/': {
+      id: '/(app)/products/'
       path: '/products'
       fullPath: '/products'
-      preLoaderRoute: typeof appProductsRouteRouteImport
+      preLoaderRoute: typeof appProductsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/products/$id': {
-      id: '/(app)/products/$id'
-      path: '/$id'
-      fullPath: '/products/$id'
-      preLoaderRoute: typeof appProductsIdRouteImport
-      parentRoute: typeof appProductsRouteRoute
+    '/(app)/products/$productId': {
+      id: '/(app)/products/$productId'
+      path: '/products/$productId'
+      fullPath: '/products/$productId'
+      preLoaderRoute: typeof appProductsProductIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface appProductsRouteRouteChildren {
-  appProductsIdRoute: typeof appProductsIdRoute
-}
-
-const appProductsRouteRouteChildren: appProductsRouteRouteChildren = {
-  appProductsIdRoute: appProductsIdRoute,
-}
-
-const appProductsRouteRouteWithChildren =
-  appProductsRouteRoute._addFileChildren(appProductsRouteRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  appProductsRouteRoute: appProductsRouteRouteWithChildren,
   adminBranchesRoute: adminBranchesRoute,
   adminCategoriesRoute: adminCategoriesRoute,
   adminStaffRoute: adminStaffRoute,
@@ -276,6 +285,9 @@ const rootRouteChildren: RootRouteChildren = {
   appReportsRoute: appReportsRoute,
   appStockMovementsRoute: appStockMovementsRoute,
   authLoginRoute: authLoginRoute,
+  authSignupRoute: authSignupRoute,
+  appProductsProductIdRoute: appProductsProductIdRoute,
+  appProductsIndexRoute: appProductsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

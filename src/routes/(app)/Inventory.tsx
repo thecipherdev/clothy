@@ -162,7 +162,7 @@ function RouteComponent() {
           movement_type: adjustmentType,
           quantity: quantity,
           reason: adjustmentReason || null,
-          performed_by: 'user',
+          performed_by: '2214933b-7c33-480e-9177-5b53a1e8d2d0',
         });
 
       if (movementError) throw movementError;
