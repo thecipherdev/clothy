@@ -1,11 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { useRouterState, useRouter, createFileRoute } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form-start';
 import { useEffect, useState } from 'react';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Field, FieldLabel, FieldGroup } from '@/components/ui/field'
+import { Field, FieldLabel, FieldGroup, FieldError } from '@/components/ui/field'
 
 
 
@@ -63,45 +62,57 @@ const COLORS = ['Black', 'White', 'Navy', 'Gray', 'Red', 'Blue', 'Green', 'Brown
 const formSchema = z.object({
   sku: z.string(),
   name: z.string(),
-  price: z.number().gte(0),
-  categories: z.string().optional(),
-  description: z.string().optional(),
-  sizes: z.enum(SIZES).optional(),
-  colors: z.enum(COLORS).optional(),
+  price: z.string().min(1, 'Make sure you enter product pricing'),
+  category_id: z.string(),
+  description: z.string(),
+  sizes: z.array(z.string()),
+  colors: z.array(z.string()),
 })
 
 export const Route = createFileRoute('/(app)/products/')({
   component: RouteComponent,
   loader: async () => {
-    const { data: products } = await supabase
-      .from('products')
-      .select('*, categories(*)')
-    return {
-      products,
+    try {
+      const { data: products } = await supabase
+        .from('products')
+        .select('*, categories(*)')
+      return { products }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
     }
+    return {}
   },
 })
 
 
 function RouteComponent() {
+  const router = useRouter()
+  const routerState = useRouterState()
+  const loading = routerState.status === 'pending'
   const form = useForm({
     defaultValues: {
       sku: "",
+      price: "",
+      name: "",
+      category_id: "",
+      description: "",
+      sizes: [] as string[],
+      colors: [] as string[],
     },
     validators: {
       onSubmit: formSchema
     },
-    onSubmit: async () => {
+    onSubmit: async ({ value }) => {
       try {
         if (editingProduct) {
           const { error } = await supabase
             .from('products')
             .update({
-              sku: formData.sku,
-              name: formData.name,
-              description: formData.description || null,
-              price: parseFloat(formData.price),
-              category_id: formData.category_id || null,
+              sku: value.sku,
+              name: value.name,
+              description: value.description || null,
+              price: parseFloat(value.price),
+              category_id: value.category_id || null,
             })
             .eq('id', editingProduct.id);
 
@@ -113,9 +124,9 @@ function RouteComponent() {
             .delete()
             .eq('product_id', editingProduct.id);
 
-          if (formData.sizes.length > 0 && formData.colors.length > 0) {
-            const variants = formData.sizes.flatMap((size) =>
-              formData.colors.map((color) => ({
+          if (value.sizes.length > 0 && value.colors.length > 0) {
+            const variants = value.sizes.flatMap((size) =>
+              value.colors.map((color) => ({
                 product_id: editingProduct.id,
                 size,
                 color,
@@ -129,11 +140,11 @@ function RouteComponent() {
           const { data: newProduct, error } = await supabase
             .from('products')
             .insert({
-              sku: formData.sku,
-              name: formData.name,
-              description: formData.description || null,
-              price: parseFloat(formData.price),
-              category_id: formData.category_id || null,
+              sku: value.sku,
+              name: value.name,
+              description: value.description || null,
+              price: parseFloat(value.price),
+              category_id: value.category_id || null,
             })
             .select()
             .single();
@@ -141,9 +152,9 @@ function RouteComponent() {
           if (error) throw error;
 
           // Create variants
-          if (formData.sizes.length > 0 && formData.colors.length > 0) {
-            const variants = formData.sizes.flatMap((size) =>
-              formData.colors.map((color) => ({
+          if (value.sizes.length > 0 && value.colors.length > 0) {
+            const variants = value.sizes.flatMap((size) =>
+              value.colors.map((color) => ({
                 product_id: newProduct.id,
                 size,
                 color,
@@ -156,7 +167,7 @@ function RouteComponent() {
         }
 
         setIsDialogOpen(false);
-        fetchProducts();
+        router.invalidate()
       } catch (error: any) {
         console.error('Error saving product:', error);
         toast.error(error.message || 'Failed to save product');
@@ -165,38 +176,14 @@ function RouteComponent() {
   })
   const { products } = Route.useLoaderData()
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [formData, setFormData] = useState({
-    sku: '',
-    name: '',
-    description: '',
-    price: '',
-    category_id: '',
-    sizes: [] as string[],
-    colors: [] as string[],
-  });
 
   useEffect(() => {
-    fetchProducts();
     fetchCategories();
   }, []);
-
-  async function fetchProducts() {
-    try {
-
-      console.log('[PRODUCT DATA TEST 1->>>]', products)
-      // setProducts(productData || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      toast.error('Failed to load products');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function fetchCategories() {
     try {
@@ -225,46 +212,23 @@ function RouteComponent() {
       const sizes = [...new Set(variants?.map((v) => v.size) || [])];
       const colors = [...new Set(variants?.map((v) => v.color) || [])];
 
-      setFormData({
-        sku: product.sku,
-        name: product.name,
-        description: product.description || '',
-        price: product.price.toString(),
-        category_id: product.category_id || '',
-        sizes,
-        colors,
-      });
+      console.log('product', product)
+      console.log('product sizes', sizes)
+      console.log('product colors', colors)
+
+      form.setFieldValue('sku', product.sku)
+      form.setFieldValue('name', product.name)
+      form.setFieldValue('description', product.description || '')
+      form.setFieldValue('price', product.price.toString())
+      form.setFieldValue('category_id', product.category_id || '')
+      form.setFieldValue('sizes', sizes)
+      form.setFieldValue('colors', colors)
+
     } else {
       setEditingProduct(null);
-      setFormData({
-        sku: '',
-        name: '',
-        description: '',
-        price: '',
-        category_id: '',
-        sizes: [],
-        colors: [],
-      });
+      form.reset();
     }
     setIsDialogOpen(true);
-  };
-
-  const toggleSize = (size: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      sizes: prev.sizes.includes(size)
-        ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size],
-    }));
-  };
-
-  const toggleColor = (color: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      colors: prev.colors.includes(color)
-        ? prev.colors.filter((c) => c !== color)
-        : [...prev.colors, color],
-    }));
   };
 
   const filteredProducts = products?.filter((product) => {
@@ -312,92 +276,157 @@ function RouteComponent() {
                     </div>
                   )}
                 />
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({ ...formData, price: e.target.value })
-                    }
-                    required
-                  />
-                </div>
+                <form.Field
+                  name="price"
+                  children={(field) => {
+                    return (
+                      <div className="space-y-2">
+                        <FieldLabel htmlFor="price">Price</FieldLabel>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          type="number"
+                          step="0.01"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                      </div>
+                    )
+                  }}
+                />
               </FieldGroup>
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+              <form.Field
+                name="name"
+                children={(field) => {
+                  return (
+                    <div className="space-y-2">
+                      <FieldLabel htmlFor="name">Product Name</FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )
+                }}
+              />
+              <form.Field
+                name="category_id"
+                children={(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <div className="space-y-2">
+                      <FieldLabel htmlFor="category">Category</FieldLabel>
+                      <Select
+                        name={field.name}
+                        value={field.state.value}
+                        onValueChange={field.handleChange}
+                      >
+                        <SelectTrigger aria-invalid={isInvalid}>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {isInvalid && (<FieldError errors={field.state.meta.errors} />)}
+                    </div>
+
+                  )
+                }}
+
+              />
+              <form.Field
+                name="description"
+                children={(field) => {
+                  return (
+                    <div className="space-y-2">
+                      <FieldLabel htmlFor="description">Description</FieldLabel>
+                      <Textarea
+                        name={field.name}
+                        id={field.name}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                  )
+                }}
+              />
+              <form.Field
+                name="sizes"
+                children={(field) => {
+                  const toggleSize = (size: string) => {
+                    const currentSize = field.state.value || []
+                    const index = currentSize.indexOf(size)
+
+                    if (index > -1) {
+                      field.removeValue(index)
+                    } else {
+                      field.pushValue(size)
+                    }
                   }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category_id}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, category_id: value })
+                  return (
+                    <div className="space-y-2">
+                      <FieldLabel>Sizes</FieldLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {SIZES.map((size) => (
+                          <Badge
+                            key={size}
+                            variant={field.state.value.includes(size) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => toggleSize(size)}
+                          >
+                            {size}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }}
+
+              />
+              <form.Field
+                mode="array"
+                name="colors"
+                children={(field) => {
+                  const toggleColor = (color: string) => {
+                    const currentColors = field.state.value || [];
+                    const index = currentColors.indexOf(color)
+
+                    if (index > -1) {
+                      field.removeValue(index)
+                    } else {
+                      field.pushValue(color)
+                    }
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Sizes</Label>
-                <div className="flex flex-wrap gap-2">
-                  {SIZES.map((size) => (
-                    <Badge
-                      key={size}
-                      variant={formData.sizes.includes(size) ? 'default' : 'outline'}
-                      className="cursor-pointer"
-                      onClick={() => toggleSize(size)}
-                    >
-                      {size}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Colors</Label>
-                <div className="flex flex-wrap gap-2">
-                  {COLORS.map((color) => (
-                    <Badge
-                      key={color}
-                      variant={formData.colors.includes(color) ? 'default' : 'outline'}
-                      className="cursor-pointer"
-                      onClick={() => toggleColor(color)}
-                    >
-                      {color}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+                  return (
+                    <div className="space-y-2">
+                      <FieldLabel>Colors</FieldLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {COLORS.map((color) => (
+                          <Badge
+                            key={color}
+                            variant={field.state.value.includes(color) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => toggleColor(color)}
+                          >
+                            {color}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                  )
+                }}
+              />
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
@@ -452,7 +481,7 @@ function RouteComponent() {
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : filteredProducts?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <ShoppingBag className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No products found.</p>
@@ -470,7 +499,7 @@ function RouteComponent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
+                {filteredProducts?.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-mono text-sm">{product.sku}</TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
@@ -489,8 +518,8 @@ function RouteComponent() {
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" asChild>
                           <Link
-                            to="/products/$id"
-                            params={{ id: product.id }}
+                            to="/products/$productId"
+                            params={{ productId: product.id }}
                           >
                             <Eye className="h-4 w-4" />
                           </Link>
