@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react';
+import { Navigate } from '@tanstack/react-router'
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label'; import { Badge } from '@/components/ui/badge';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import {
   Dialog,
   DialogContent,
@@ -11,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -20,11 +23,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+import { useAppForm } from '@/components/form/hooks';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Store } from 'lucide-react';
-// import { useAuth } from '@/hooks/useAuth';
-// import { Navigate } from '@tanstack/react-router'
+import { useAuth } from '@/hooks/useAuth';
 
 interface Branch {
   id: string;
@@ -35,27 +38,79 @@ interface Branch {
   created_at: string;
 }
 
+const formSchema = z.object({
+  name: z.string().min(1, 'Enter branch name'),
+  address: z.string().min(1, "Address can't be empty"),
+  phone: z.string().optional(),
+  is_active: z.boolean()
+});
+
+
+type FormData = z.infer<typeof formSchema>;
+
+
 export const Route = createFileRoute('/(admin)/branches')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  // const { role } = useAuth();
+  const form = useAppForm({
+    defaultValues: {
+      name: "",
+      address: "",
+      phone: "",
+      is_active: true
+    } satisfies FormData as FormData,
+    validators: {
+      onSubmit: formSchema
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        console.log('hey')
+        if (editingBranch) {
+          const { error } = await supabase
+            .from('branches')
+            .update({
+              name: value.name,
+              address: value.address || null,
+              phone: value.phone || null,
+              is_active: value.is_active,
+            })
+            .eq('id', editingBranch.id);
+
+          if (error) throw error;
+          toast.success('Branch updated successfully');
+        } else {
+          const { error } = await supabase.from('branches').insert({
+            name: value.name,
+            address: value.address || null,
+            phone: value.phone || null,
+            is_active: value.is_active,
+          });
+
+          if (error) throw error;
+          toast.success('Branch created successfully');
+        }
+
+        setIsDialogOpen(false);
+        fetchBranches();
+      } catch (error: any) {
+        console.error('Error saving branch:', error);
+        toast.error(error.message || 'Failed to save branch');
+      }
+
+    }
+  })
+  const { role } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    phone: '',
-    is_active: true,
-  });
 
   // Only admins can access this page
-  // if (role !== 'admin') {
-  //   return <Navigate to="/dashboard" replace />;
-  // }
+  if (role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
 
   useEffect(() => {
@@ -82,61 +137,22 @@ function RouteComponent() {
   const handleOpenDialog = (branch?: Branch) => {
     if (branch) {
       setEditingBranch(branch);
-      setFormData({
-        name: branch.name,
-        address: branch.address || '',
-        phone: branch.phone || '',
-        is_active: branch.is_active,
-      });
+      form.setFieldValue('name', branch.name)
+      form.setFieldValue('address', branch.address || '')
+      form.setFieldValue('phone', branch.phone || '')
+      form.setFieldValue('is_active', branch.is_active)
     } else {
       setEditingBranch(null);
-      setFormData({ name: '', address: '', phone: '', is_active: true });
+      form.reset();
     }
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (editingBranch) {
-        const { error } = await supabase
-          .from('branches')
-          .update({
-            name: formData.name,
-            address: formData.address || null,
-            phone: formData.phone || null,
-            is_active: formData.is_active,
-          })
-          .eq('id', editingBranch.id);
-
-        if (error) throw error;
-        toast.success('Branch updated successfully');
-      } else {
-        const { error } = await supabase.from('branches').insert({
-          name: formData.name,
-          address: formData.address || null,
-          phone: formData.phone || null,
-          is_active: formData.is_active,
-        });
-
-        if (error) throw error;
-        toast.success('Branch created successfully');
-      }
-
-      setIsDialogOpen(false);
-      fetchBranches();
-    } catch (error: any) {
-      console.error('Error saving branch:', error);
-      toast.error(error.message || 'Failed to save branch');
-    }
-  };
-
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button onClick={() => handleOpenDialog()}>
+          <Button className="w-fit ml-auto" onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />
             Add Branch
           </Button>
@@ -147,48 +163,36 @@ function RouteComponent() {
               {editingBranch ? 'Edit Branch' : 'Add New Branch'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Branch Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, is_active: checked })
-                }
-              />
-              <Label htmlFor="is_active">Active</Label>
-            </div>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+            className="space-y-4"
+          >
+            <form.AppField
+              name="name"
+              children={(field) => (
+                <field.Input formBaseProps={{ label: "Branch Name" }} />
+              )}
+            />
+            <form.AppField
+              name="address"
+              children={(field) => (
+                <field.Input formBaseProps={{ label: "Address" }} />
+              )}
+            />
+            <form.AppField
+              name="phone"
+              children={(field) => (
+                <field.Input formBaseProps={{ label: "Phone" }} />
+              )}
+            />
+            <form.AppField
+              name="is_active"
+              children={(field) => (
+                <field.Switch label="Active" horizontal={true} />
+              )}
+            />
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
@@ -260,7 +264,7 @@ function RouteComponent() {
           )}
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }
 

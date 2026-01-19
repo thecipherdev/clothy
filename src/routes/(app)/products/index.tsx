@@ -1,9 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { useRouterState, useRouter, createFileRoute } from '@tanstack/react-router';
+import { useAppForm } from '@/components/form/hooks';
 import { useEffect, useState } from 'react';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -28,14 +29,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Field, FieldLabel, FieldGroup, FieldError } from '@/components/ui/field'
+
+
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, ShoppingBag, Search, Eye } from 'lucide-react';
-// import { useAuth } from '@/hooks/useAuth';
 import { Link } from '@tanstack/react-router';
 
 
-interface Category {
+export interface Category {
   id: string;
   name: string;
 }
@@ -55,55 +59,131 @@ interface Product {
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const COLORS = ['Black', 'White', 'Navy', 'Gray', 'Red', 'Blue', 'Green', 'Brown', 'Beige', 'Pink'];
 
+const formSchema = z.object({
+  sku: z.string(),
+  name: z.string(),
+  price: z.string().min(1, 'Make sure you enter product pricing'),
+  category_id: z.string(),
+  description: z.string(),
+  sizes: z.array(z.string()),
+  colors: z.array(z.string()),
+})
+
 export const Route = createFileRoute('/(app)/products/')({
   component: RouteComponent,
   loader: async () => {
-    const { data: products } = await supabase
-      .from('products')
-      .select('*')
-    return {
-      products,
+    try {
+      const { data: products } = await supabase
+        .from('products')
+        .select('*, categories(*)')
+      return { products }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
     }
+    return {}
   },
 })
 
 
 function RouteComponent() {
-  // const { role } = useAuth();
+  const router = useRouter()
+  const routerState = useRouterState()
+  const loading = routerState.status === 'pending'
+  const form = useAppForm({
+    defaultValues: {
+      sku: "",
+      price: "",
+      name: "",
+      category_id: "",
+      description: "",
+      sizes: [] as string[],
+      colors: [] as string[],
+    },
+    validators: {
+      onSubmit: formSchema
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        if (editingProduct) {
+          const { error } = await supabase
+            .from('products')
+            .update({
+              sku: value.sku,
+              name: value.name,
+              description: value.description || null,
+              price: parseFloat(value.price),
+              category_id: value.category_id || null,
+            })
+            .eq('id', editingProduct.id);
+
+          if (error) throw error;
+
+          // Update variants - delete existing and create new
+          await supabase
+            .from('product_variants')
+            .delete()
+            .eq('product_id', editingProduct.id);
+
+          if (value.sizes.length > 0 && value.colors.length > 0) {
+            const variants = value.sizes.flatMap((size) =>
+              value.colors.map((color) => ({
+                product_id: editingProduct.id,
+                size,
+                color,
+              }))
+            );
+            await supabase.from('product_variants').insert(variants);
+          }
+
+          toast.success('Product updated successfully');
+        } else {
+          const { data: newProduct, error } = await supabase
+            .from('products')
+            .insert({
+              sku: value.sku,
+              name: value.name,
+              description: value.description || null,
+              price: parseFloat(value.price),
+              category_id: value.category_id || null,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          // Create variants
+          if (value.sizes.length > 0 && value.colors.length > 0) {
+            const variants = value.sizes.flatMap((size) =>
+              value.colors.map((color) => ({
+                product_id: newProduct.id,
+                size,
+                color,
+              }))
+            );
+            await supabase.from('product_variants').insert(variants);
+          }
+
+          toast.success('Product created successfully');
+        }
+
+        setIsDialogOpen(false);
+        router.invalidate()
+      } catch (error: any) {
+        console.error('Error saving product:', error);
+        toast.error(error.message || 'Failed to save product');
+      }
+    }
+  })
   const { products } = Route.useLoaderData()
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [formData, setFormData] = useState({
-    sku: '',
-    name: '',
-    description: '',
-    price: '',
-    category_id: '',
-    sizes: [] as string[],
-    colors: [] as string[],
-  });
 
   useEffect(() => {
-    fetchProducts();
     fetchCategories();
   }, []);
-
-  async function fetchProducts() {
-    try {
-
-      console.log('[PRODUCT DATA TEST 1->>>]', products)
-      // setProducts(productData || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      toast.error('Failed to load products');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function fetchCategories() {
     try {
@@ -132,120 +212,19 @@ function RouteComponent() {
       const sizes = [...new Set(variants?.map((v) => v.size) || [])];
       const colors = [...new Set(variants?.map((v) => v.color) || [])];
 
-      setFormData({
-        sku: product.sku,
-        name: product.name,
-        description: product.description || '',
-        price: product.price.toString(),
-        category_id: product.category_id || '',
-        sizes,
-        colors,
-      });
+      form.setFieldValue('sku', product.sku)
+      form.setFieldValue('name', product.name)
+      form.setFieldValue('description', product.description || '')
+      form.setFieldValue('price', product.price.toString())
+      form.setFieldValue('category_id', product.category_id || '')
+      form.setFieldValue('sizes', sizes)
+      form.setFieldValue('colors', colors)
+
     } else {
       setEditingProduct(null);
-      setFormData({
-        sku: '',
-        name: '',
-        description: '',
-        price: '',
-        category_id: '',
-        sizes: [],
-        colors: [],
-      });
+      form.reset();
     }
     setIsDialogOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (editingProduct) {
-        const { error } = await supabase
-          .from('products')
-          .update({
-            sku: formData.sku,
-            name: formData.name,
-            description: formData.description || null,
-            price: parseFloat(formData.price),
-            category_id: formData.category_id || null,
-          })
-          .eq('id', editingProduct.id);
-
-        if (error) throw error;
-
-        // Update variants - delete existing and create new
-        await supabase
-          .from('product_variants')
-          .delete()
-          .eq('product_id', editingProduct.id);
-
-        if (formData.sizes.length > 0 && formData.colors.length > 0) {
-          const variants = formData.sizes.flatMap((size) =>
-            formData.colors.map((color) => ({
-              product_id: editingProduct.id,
-              size,
-              color,
-            }))
-          );
-          await supabase.from('product_variants').insert(variants);
-        }
-
-        toast.success('Product updated successfully');
-      } else {
-        const { data: newProduct, error } = await supabase
-          .from('products')
-          .insert({
-            sku: formData.sku,
-            name: formData.name,
-            description: formData.description || null,
-            price: parseFloat(formData.price),
-            category_id: formData.category_id || null,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        // Create variants
-        if (formData.sizes.length > 0 && formData.colors.length > 0) {
-          const variants = formData.sizes.flatMap((size) =>
-            formData.colors.map((color) => ({
-              product_id: newProduct.id,
-              size,
-              color,
-            }))
-          );
-          await supabase.from('product_variants').insert(variants);
-        }
-
-        toast.success('Product created successfully');
-      }
-
-      setIsDialogOpen(false);
-      fetchProducts();
-    } catch (error: any) {
-      console.error('Error saving product:', error);
-      toast.error(error.message || 'Failed to save product');
-    }
-  };
-
-  const toggleSize = (size: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      sizes: prev.sizes.includes(size)
-        ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size],
-    }));
-  };
-
-  const toggleColor = (color: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      colors: prev.colors.includes(color)
-        ? prev.colors.filter((c) => c !== color)
-        : [...prev.colors, color],
-    }));
   };
 
   const filteredProducts = products?.filter((product) => {
@@ -258,10 +237,10 @@ function RouteComponent() {
   });
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button onClick={() => handleOpenDialog()}>
+          <Button className="ml-auto w-fit" onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
@@ -272,117 +251,90 @@ function RouteComponent() {
               {editingProduct ? 'Edit Product' : 'Add New Product'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
-                <Input
-                  id="sku"
-                  value={formData.sku}
-                  onChange={(e) =>
-                    setFormData({ ...formData, sku: e.target.value })
-                  }
-                  required
+          <form onSubmit={(e: React.FormEvent) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }} className="space-y-4">
+            <Field>
+              <FieldGroup className="grid grid-cols-2 gap-4">
+                <form.AppField
+                  name="sku"
+                  children={(field) => (
+                    <field.Input formBaseProps={{ label: "SKU" }} />
+                  )}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: e.target.value })
-                  }
-                  required
+                <form.AppField
+                  name="price"
+                  children={(field) => (
+                    <field.Input formBaseProps={{ label: "Price" }} />
+                  )}
                 />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
+              </FieldGroup>
+              <form.AppField
+                name="name"
+                children={(field) => (
+                  <field.Input formBaseProps={{ label: "Product Name" }} />
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category_id}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, category_id: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
+              <form.AppField
+                name="category_id"
+                children={(field) => (
+                  <field.Select label="Category" categories={categories} />
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Sizes</Label>
-              <div className="flex flex-wrap gap-2">
-                {SIZES.map((size) => (
-                  <Badge
-                    key={size}
-                    variant={formData.sizes.includes(size) ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => toggleSize(size)}
-                  >
-                    {size}
-                  </Badge>
-                ))}
+              <form.AppField
+                name="description"
+                children={(field) => (
+                  <field.Textarea label="Description" />
+                )}
+              />
+              <form.AppField
+                name="sizes"
+                children={(field) => {
+                  const toggleSize = (size: string) => {
+                    const currentSize = field.state.value || []
+                    const index = currentSize.indexOf(size)
+
+                    if (index > -1) {
+                      field.removeValue(index)
+                    } else {
+                      field.pushValue(size)
+                    }
+                  }
+                  return <field.BadgeSelect label="Sizes" items={SIZES} onClick={toggleSize} />
+                }}
+
+              />
+              <form.AppField
+                mode="array"
+                name="colors"
+                children={(field) => {
+                  const toggleColor = (color: string) => {
+                    const currentColors = field.state.value || [];
+                    const index = currentColors.indexOf(color)
+
+                    if (index > -1) {
+                      field.removeValue(index)
+                    } else {
+                      field.pushValue(color)
+                    }
+                  }
+                  return <field.BadgeSelect label="Colors" items={COLORS} onClick={toggleColor} />
+                }}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {editingProduct ? 'Update' : 'Create'}
+                </Button>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Colors</Label>
-              <div className="flex flex-wrap gap-2">
-                {COLORS.map((color) => (
-                  <Badge
-                    key={color}
-                    variant={formData.colors.includes(color) ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => toggleColor(color)}
-                  >
-                    {color}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                {editingProduct ? 'Update' : 'Create'}
-              </Button>
-            </div>
+            </Field>
           </form>
         </DialogContent>
       </Dialog>
@@ -424,7 +376,7 @@ function RouteComponent() {
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : filteredProducts?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <ShoppingBag className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No products found.</p>
@@ -442,7 +394,7 @@ function RouteComponent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
+                {filteredProducts?.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-mono text-sm">{product.sku}</TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
@@ -461,8 +413,8 @@ function RouteComponent() {
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" asChild>
                           <Link
-                            to="/products/$id"
-                            params={{ id: product.id }}
+                            to="/products/$productId"
+                            params={{ productId: product.id }}
                           >
                             <Eye className="h-4 w-4" />
                           </Link>

@@ -6,6 +6,7 @@ import {
   useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { FormDevtoolsPanel } from '@tanstack/react-form-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { navLinks, NavKey } from '@/components/layout/navLinks'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
@@ -15,6 +16,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { AuthProvider } from '@/hooks/useAuth'
+import { Toaster } from '@/components/ui/sonner'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -73,6 +75,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster />
         <TanStackDevtools
           config={{
             position: 'bottom-right',
@@ -81,6 +84,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             {
               name: 'Tanstack Router',
               render: <TanStackRouterDevtoolsPanel />,
+            },
+            {
+              name: 'Tanstack Form',
+              render: <FormDevtoolsPanel />
             },
             TanStackQueryDevtools,
           ]}

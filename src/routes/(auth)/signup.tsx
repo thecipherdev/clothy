@@ -1,43 +1,61 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
+import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Package } from 'lucide-react';
+import { useAppForm } from '@/components/form/hooks';
 
 export const Route = createFileRoute('/(auth)/signup')({
   component: RouteComponent,
 })
 
+const formSchema = z.object({
+  fullName: z.string(),
+  email: z.email(),
+  password: z.string().min(6, {
+    error: (iss) => {
+      return `Password must have ${iss.minimum} characters or more`
+    }
+  }),
+})
+
+type FormData = z.infer<typeof formSchema>;
+
 function RouteComponent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const form = useAppForm({
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+    } satisfies FormData as FormData,
+    validators: {
+      onSubmit: formSchema
+    },
+    onSubmit: async ({ value }) => {
+      setLoading(true);
+
+      const { error } = await signUp(value.email, value.password, value.fullName);
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Account created successfully!');
+        navigate({
+          to: '/dashboard'
+        });
+      }
+
+      setLoading(false);
+
+    }
+  })
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const { error } = await signUp(email, password, fullName);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Account created successfully!');
-      navigate({
-        to: '/dashboard'
-      });
-    }
-
-    setLoading(false);
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -51,44 +69,43 @@ function RouteComponent() {
           <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>Get started with your inventory system</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="John Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
+            <form.AppField
+              name="fullName"
+              children={(field) => (
+                <field.Input
+                  formBaseProps={{ label: "Full Name" }}
+                  placeholder="John Doe"
+                />
+              )}
+            />
+            <form.AppField
+              name="email"
+              children={(field) => (
+                <field.Input
+                  formBaseProps={{ label: "Email" }}
+                  id={field.name}
+                  placeholder="you@example.com"
+                  type="email"
+                />
+              )}
+            />
+            <form.AppField
+              name="password"
+              children={(field) => (
+                <field.Input
+                  formBaseProps={{ label: "Password" }}
+                  type="password"
+                  placeholder="••••••••"
+                />
+              )}
+            />
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
+          <CardFooter className="flex flex-col gap-4 mt-6">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account...' : 'Create account'}
             </Button>
