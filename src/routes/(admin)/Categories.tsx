@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form-start';
 import { useEffect, useState } from 'react';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
+import { useAppForm } from '@/components/form/hooks';
 import { toast } from 'sonner';
 import { Plus, Pencil, FolderTree, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,7 +59,7 @@ export const Route = createFileRoute('/(admin)/categories')({
 
 function RouteComponent() {
   const { role } = useAuth();
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       name: "",
       description: ""
@@ -133,7 +133,7 @@ function RouteComponent() {
     if (category) {
       setEditingCategory(category);
       form.setFieldValue('name', category.name);
-      form.setFieldValue('description', category.name || '');
+      form.setFieldValue('description', category.description || '');
     } else {
       setEditingCategory(null);
       form.reset();
@@ -172,42 +172,18 @@ function RouteComponent() {
             e.preventDefault()
             form.handleSubmit()
           }} className="space-y-4">
-            <form.Field
+            <form.AppField
               name="name"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid} className="space-y-2">
-                    <FieldLabel htmlFor="name">Category Name</FieldLabel>
-                    <Input
-                      id="name"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      required
-                    />
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                )
-              }}
+              children={(field) => (
+                <field.Input formBaseProps={{ label: "Category Name" }} />
+              )}
             />
 
-            <form.Field
+            <form.AppField
               name="description"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid} className="space-y-2">
-                    <FieldLabel htmlFor="description">Description</FieldLabel>
-                    <Textarea
-                      id="description"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      rows={3}
-                    />
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                )
-              }}
+              children={(field) => (
+                <field.Textarea label="Description" />
+              )}
             />
             <div className="flex justify-end gap-2">
               <Button

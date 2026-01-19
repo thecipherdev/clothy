@@ -28,8 +28,8 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Users, Settings, Store } from 'lucide-react';
-// import { useAuth } from '@/hooks/useAuth';
-// import { Navigate } from '@tanstack/react-router';
+import { useAuth } from '@/hooks/useAuth';
+import { Navigate } from '@tanstack/react-router';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Profile {
@@ -51,7 +51,7 @@ export const Route = createFileRoute('/(admin)/staff')({
 })
 
 function RouteComponent() {
-  // const { role } = useAuth();
+  const { role } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,9 +60,9 @@ function RouteComponent() {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
 
-  // if (role !== 'admin') {
-  //   return <Navigate to="/dashboard" replace />;
-  // }
+  if (role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   useEffect(() => {
     fetchProfiles();

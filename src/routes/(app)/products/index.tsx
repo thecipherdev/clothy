@@ -1,5 +1,5 @@
 import { useRouterState, useRouter, createFileRoute } from '@tanstack/react-router';
-import { useForm } from '@tanstack/react-form-start';
+import { useAppForm } from '@/components/form/hooks';
 import { useEffect, useState } from 'react';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,7 @@ import { Plus, Pencil, ShoppingBag, Search, Eye } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 
-interface Category {
+export interface Category {
   id: string;
   name: string;
 }
@@ -89,7 +89,7 @@ function RouteComponent() {
   const router = useRouter()
   const routerState = useRouterState()
   const loading = routerState.status === 'pending'
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       sku: "",
       price: "",
@@ -257,105 +257,38 @@ function RouteComponent() {
           }} className="space-y-4">
             <Field>
               <FieldGroup className="grid grid-cols-2 gap-4">
-                <form.Field
+                <form.AppField
                   name="sku"
                   children={(field) => (
-                    <div className="space-y-2">
-                      <FieldLabel htmlFor="sku">SKU</FieldLabel>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        required
-                      />
-                    </div>
+                    <field.Input formBaseProps={{ label: "SKU" }} />
                   )}
                 />
-                <form.Field
+                <form.AppField
                   name="price"
-                  children={(field) => {
-                    return (
-                      <div className="space-y-2">
-                        <FieldLabel htmlFor="price">Price</FieldLabel>
-                        <Input
-                          id={field.name}
-                          name={field.name}
-                          type="number"
-                          step="0.01"
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                        />
-                      </div>
-                    )
-                  }}
+                  children={(field) => (
+                    <field.Input formBaseProps={{ label: "Price" }} />
+                  )}
                 />
               </FieldGroup>
-              <form.Field
+              <form.AppField
                 name="name"
-                children={(field) => {
-                  return (
-                    <div className="space-y-2">
-                      <FieldLabel htmlFor="name">Product Name</FieldLabel>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )
-                }}
+                children={(field) => (
+                  <field.Input formBaseProps={{ label: "Product Name" }} />
+                )}
               />
-              <form.Field
+              <form.AppField
                 name="category_id"
-                children={(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                  return (
-                    <Field data-invalid={isInvalid} className="space-y-2">
-                      <FieldLabel htmlFor="category">Category</FieldLabel>
-                      <Select
-                        name={field.name}
-                        value={field.state.value}
-                        onValueChange={field.handleChange}
-                      >
-                        <SelectTrigger aria-invalid={isInvalid}>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {isInvalid && (<FieldError errors={field.state.meta.errors} />)}
-                    </Field>
-
-                  )
-                }}
-
+                children={(field) => (
+                  <field.Select label="Category" categories={categories} />
+                )}
               />
-              <form.Field
+              <form.AppField
                 name="description"
-                children={(field) => {
-                  return (
-                    <Field className="space-y-2">
-                      <FieldLabel htmlFor="description">Description</FieldLabel>
-                      <Textarea
-                        name={field.name}
-                        id={field.name}
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        rows={3}
-                      />
-                    </Field>
-                  )
-                }}
+                children={(field) => (
+                  <field.Textarea label="Description" />
+                )}
               />
-              <form.Field
+              <form.AppField
                 name="sizes"
                 children={(field) => {
                   const toggleSize = (size: string) => {
@@ -368,27 +301,11 @@ function RouteComponent() {
                       field.pushValue(size)
                     }
                   }
-                  return (
-                    <Field className="space-y-2">
-                      <FieldLabel>Sizes</FieldLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {SIZES.map((size) => (
-                          <Badge
-                            key={size}
-                            variant={field.state.value.includes(size) ? 'default' : 'outline'}
-                            className="cursor-pointer"
-                            onClick={() => toggleSize(size)}
-                          >
-                            {size}
-                          </Badge>
-                        ))}
-                      </div>
-                    </Field>
-                  )
+                  return <field.BadgeSelect label="Sizes" items={SIZES} onClick={toggleSize} />
                 }}
 
               />
-              <form.Field
+              <form.AppField
                 mode="array"
                 name="colors"
                 children={(field) => {
@@ -402,24 +319,7 @@ function RouteComponent() {
                       field.pushValue(color)
                     }
                   }
-                  return (
-                    <Field className="space-y-2">
-                      <FieldLabel>Colors</FieldLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {COLORS.map((color) => (
-                          <Badge
-                            key={color}
-                            variant={field.state.value.includes(color) ? 'default' : 'outline'}
-                            className="cursor-pointer"
-                            onClick={() => toggleColor(color)}
-                          >
-                            {color}
-                          </Badge>
-                        ))}
-                      </div>
-                    </Field>
-
-                  )
+                  return <field.BadgeSelect label="Colors" items={COLORS} onClick={toggleColor} />
                 }}
               />
               <div className="flex justify-end gap-2">

@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -111,12 +110,11 @@ function RouteComponent() {
   }
 
   return (
-    <>
-
-      <Button variant="outline" onClick={() => navigate({
+    <div className="flex flex-col gap-4">
+      <Button className="w-fit ml-auto" variant="outline" onClick={() => navigate({
         to: '/products'
       })}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
+        <ArrowLeft className="h-4 w-4 mr-1" />
         Back to Products
       </Button>
 
@@ -199,6 +197,6 @@ function RouteComponent() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 }

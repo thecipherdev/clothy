@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
-import { useForm } from '@tanstack/react-form-start';
 import * as z from 'zod'
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAppForm } from '@/components/form/hooks';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Shirt } from 'lucide-react';
@@ -27,7 +27,7 @@ function RouteComponent() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       email: "",
       password: "",
@@ -56,6 +56,7 @@ function RouteComponent() {
     }
   });
 
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md rounded shadow-md">
@@ -74,53 +75,17 @@ function RouteComponent() {
         }}>
           <FieldGroup>
             <CardContent className="space-y-4 mb-4">
-              <form.Field
+              <form.AppField
                 name="email"
-                children={(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                  return (
-                    <div className="space-y-2">
-                      <FieldLabel htmlFor="email">Email</FieldLabel>
-                      <Input
-                        className="rounded"
-                        name={field.name}
-                        id={field.name}
-                        value={field.state.value}
-                        type="email"
-                        placeholder="you@example.com"
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-
-                      {isInvalid && (
-                        <FieldError errors={field.state.meta.errors} />
-                      )}
-                    </div>
-                  )
-                }}
+                children={(field) => (
+                  <field.Input formBaseProps={{ label: "Email" }} placeholder="you@example.com" type="email" id={field.name} className="rounded" />
+                )}
               />
-              <form.Field
+              <form.AppField
                 name="password"
-                children={(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                  return (
-                    <div className="space-y-2">
-                      <FieldLabel htmlFor="password">Password</FieldLabel>
-                      <Input
-                        className="rounded"
-                        id={field.name}
-                        name={field.name}
-                        type="password"
-                        placeholder="••••••••"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-
-                      {isInvalid && (
-                        <FieldError errors={field.state.meta.errors} />
-                      )}
-                    </div>
-                  )
-                }}
+                children={(field) => (
+                  <field.Input formBaseProps={{ label: "Password" }} placeholder="••••••••" type="password" id={field.name} className="rounded" />
+                )}
               />
             </CardContent>
 

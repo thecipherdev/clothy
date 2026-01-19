@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form-start';
 import { useEffect, useState } from 'react';
+import { Navigate } from '@tanstack/react-router'
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,11 +23,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+import { useAppForm } from '@/components/form/hooks';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Store } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from '@tanstack/react-router'
 
 interface Branch {
   id: string;
@@ -54,7 +54,7 @@ export const Route = createFileRoute('/(admin)/branches')({
 })
 
 function RouteComponent() {
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       name: "",
       address: "",
@@ -169,76 +169,29 @@ function RouteComponent() {
           }}
             className="space-y-4"
           >
-            <form.Field
+            <form.AppField
               name="name"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid} className="space-y-2">
-                    <FieldLabel htmlFor="name">Branch Name</FieldLabel>
-                    <Input
-                      id="name"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                    />
-                    {isInvalid && (<FieldError errors={field.state.meta.errors} />)}
-                  </Field>
-                )
-              }}
+              children={(field) => (
+                <field.Input formBaseProps={{ label: "Branch Name" }} />
+              )}
             />
-            <form.Field
+            <form.AppField
               name="address"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid} className="space-y-2">
-                    <FieldLabel htmlFor="address">Address</FieldLabel>
-                    <Input
-                      id="address"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                    />
-                    {isInvalid && (<FieldError errors={field.state.meta.errors} />)}
-                  </Field>
-                )
-              }}
+              children={(field) => (
+                <field.Input formBaseProps={{ label: "Address" }} />
+              )}
             />
-            <form.Field
+            <form.AppField
               name="phone"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid} className="space-y-2">
-                    <FieldLabel htmlFor="phone">Phone</FieldLabel>
-                    <Input
-                      id="phone"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                    />
-                  </Field>
-                )
-              }}
+              children={(field) => (
+                <field.Input formBaseProps={{ label: "Phone" }} />
+              )}
             />
-            <form.Field
+            <form.AppField
               name="is_active"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
-                return (
-                  <Field className="flex items-center gap-2" orientation="horizontal">
-                    <Switch
-                      checked={field.state.value}
-                      onCheckedChange={field.handleChange}
-                      aria-invalid={isInvalid}
-                    />
-                    <FieldLabel htmlFor="is_active">Active</FieldLabel>
-                  </Field>
-                )
-
-              }}
+              children={(field) => (
+                <field.Switch label="Active" horizontal={true} />
+              )}
             />
             <div className="flex justify-end gap-2">
               <Button
