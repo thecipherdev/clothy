@@ -212,10 +212,6 @@ function RouteComponent() {
       const sizes = [...new Set(variants?.map((v) => v.size) || [])];
       const colors = [...new Set(variants?.map((v) => v.color) || [])];
 
-      console.log('product', product)
-      console.log('product sizes', sizes)
-      console.log('product colors', colors)
-
       form.setFieldValue('sku', product.sku)
       form.setFieldValue('name', product.name)
       form.setFieldValue('description', product.description || '')
@@ -317,7 +313,7 @@ function RouteComponent() {
                 children={(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
-                    <div className="space-y-2">
+                    <Field data-invalid={isInvalid} className="space-y-2">
                       <FieldLabel htmlFor="category">Category</FieldLabel>
                       <Select
                         name={field.name}
@@ -336,7 +332,7 @@ function RouteComponent() {
                         </SelectContent>
                       </Select>
                       {isInvalid && (<FieldError errors={field.state.meta.errors} />)}
-                    </div>
+                    </Field>
 
                   )
                 }}
@@ -346,7 +342,7 @@ function RouteComponent() {
                 name="description"
                 children={(field) => {
                   return (
-                    <div className="space-y-2">
+                    <Field className="space-y-2">
                       <FieldLabel htmlFor="description">Description</FieldLabel>
                       <Textarea
                         name={field.name}
@@ -355,8 +351,7 @@ function RouteComponent() {
                         onChange={(e) => field.handleChange(e.target.value)}
                         rows={3}
                       />
-                    </div>
-
+                    </Field>
                   )
                 }}
               />
@@ -374,7 +369,7 @@ function RouteComponent() {
                     }
                   }
                   return (
-                    <div className="space-y-2">
+                    <Field className="space-y-2">
                       <FieldLabel>Sizes</FieldLabel>
                       <div className="flex flex-wrap gap-2">
                         {SIZES.map((size) => (
@@ -388,7 +383,7 @@ function RouteComponent() {
                           </Badge>
                         ))}
                       </div>
-                    </div>
+                    </Field>
                   )
                 }}
 
@@ -408,7 +403,7 @@ function RouteComponent() {
                     }
                   }
                   return (
-                    <div className="space-y-2">
+                    <Field className="space-y-2">
                       <FieldLabel>Colors</FieldLabel>
                       <div className="flex flex-wrap gap-2">
                         {COLORS.map((color) => (
@@ -422,7 +417,7 @@ function RouteComponent() {
                           </Badge>
                         ))}
                       </div>
-                    </div>
+                    </Field>
 
                   )
                 }}
