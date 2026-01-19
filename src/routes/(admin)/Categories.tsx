@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useForm } from '@tanstack/react-form-start';
 import { useEffect, useState } from 'react';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
@@ -23,8 +25,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, FolderTree, Trash2 } from 'lucide-react';
-// import { useAuth } from '@/hooks/useAuth';
-// import { Navigate } from '@tanstack/react-router';
+import { useAuth } from '@/hooks/useAuth';
+import { Navigate } from '@tanstack/react-router';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,24 +46,67 @@ interface Category {
   created_at: string;
 }
 
+const formSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+})
+
+type FormData = z.infer<typeof formSchema>;
+
 export const Route = createFileRoute('/(admin)/categories')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  // const { role } = useAuth();
+  const { role } = useAuth();
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      description: ""
+    } satisfies FormData as FormData,
+    validators: {
+      onSubmit: formSchema
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        if (editingCategory) {
+          const { error } = await supabase
+            .from('categories')
+            .update({
+              name: value.name,
+              description: value.description || null,
+            })
+            .eq('id', editingCategory.id);
+
+          if (error) throw error;
+          toast.success('Category updated successfully');
+        } else {
+          const { error } = await supabase.from('categories').insert({
+            name: value.name,
+            description: value.description || null,
+          });
+
+          if (error) throw error;
+          toast.success('Category created successfully');
+        }
+
+        setIsDialogOpen(false);
+        fetchCategories();
+      } catch (error: any) {
+        console.error('Error saving category:', error);
+        toast.error(error.message || 'Failed to save category');
+      }
+    }
+  });
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  });
 
-  // if (role !== 'admin') {
-  //   return <Navigate to="/dashboard" replace />;
-  // }
+  if (role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   useEffect(() => {
     fetchCategories();
@@ -87,48 +132,13 @@ function RouteComponent() {
   const handleOpenDialog = (category?: Category) => {
     if (category) {
       setEditingCategory(category);
-      setFormData({
-        name: category.name,
-        description: category.description || '',
-      });
+      form.setFieldValue('name', category.name);
+      form.setFieldValue('description', category.name || '');
     } else {
       setEditingCategory(null);
-      setFormData({ name: '', description: '' });
+      form.reset();
     }
     setIsDialogOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      if (editingCategory) {
-        const { error } = await supabase
-          .from('categories')
-          .update({
-            name: formData.name,
-            description: formData.description || null,
-          })
-          .eq('id', editingCategory.id);
-
-        if (error) throw error;
-        toast.success('Category updated successfully');
-      } else {
-        const { error } = await supabase.from('categories').insert({
-          name: formData.name,
-          description: formData.description || null,
-        });
-
-        if (error) throw error;
-        toast.success('Category created successfully');
-      }
-
-      setIsDialogOpen(false);
-      fetchCategories();
-    } catch (error: any) {
-      console.error('Error saving category:', error);
-      toast.error(error.message || 'Failed to save category');
-    }
   };
 
   const handleDelete = async (id: string) => {
@@ -144,12 +154,10 @@ function RouteComponent() {
   };
 
   return (
-    <
-      >
-
+    <div className="flex flex-col gap-4">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button onClick={() => handleOpenDialog()}>
+          <Button className="ml-auto" onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />
             Add Category
           </Button>
@@ -160,29 +168,47 @@ function RouteComponent() {
               {editingCategory ? 'Edit Category' : 'Add New Category'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Category Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            form.handleSubmit()
+          }} className="space-y-4">
+            <form.Field
+              name="name"
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid} className="space-y-2">
+                    <FieldLabel htmlFor="name">Category Name</FieldLabel>
+                    <Input
+                      id="name"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      required
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                )
+              }}
+            />
+
+            <form.Field
+              name="description"
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid} className="space-y-2">
+                    <FieldLabel htmlFor="description">Description</FieldLabel>
+                    <Textarea
+                      id="description"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      rows={3}
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                )
+              }}
+            />
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
@@ -271,6 +297,6 @@ function RouteComponent() {
           )}
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }
