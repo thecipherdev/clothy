@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as authSignupRouteImport } from './routes/(auth)/signup'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
+import { Route as appSuppliersRouteImport } from './routes/(app)/suppliers'
 import { Route as appStockMovementsRouteImport } from './routes/(app)/stock-movements'
 import { Route as appReportsRouteImport } from './routes/(app)/reports'
 import { Route as appInventoryRouteImport } from './routes/(app)/inventory'
@@ -37,6 +38,11 @@ const authSignupRoute = authSignupRouteImport.update({
 const authLoginRoute = authLoginRouteImport.update({
   id: '/(auth)/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const appSuppliersRoute = appSuppliersRouteImport.update({
+  id: '/(app)/suppliers',
+  path: '/suppliers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const appStockMovementsRoute = appStockMovementsRouteImport.update({
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof appInventoryRoute
   '/reports': typeof appReportsRoute
   '/stock-movements': typeof appStockMovementsRoute
+  '/suppliers': typeof appSuppliersRoute
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
   '/products/$productId': typeof appProductsProductIdRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof appInventoryRoute
   '/reports': typeof appReportsRoute
   '/stock-movements': typeof appStockMovementsRoute
+  '/suppliers': typeof appSuppliersRoute
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
   '/products/$productId': typeof appProductsProductIdRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/(app)/inventory': typeof appInventoryRoute
   '/(app)/reports': typeof appReportsRoute
   '/(app)/stock-movements': typeof appStockMovementsRoute
+  '/(app)/suppliers': typeof appSuppliersRoute
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/signup': typeof authSignupRoute
   '/(app)/products/$productId': typeof appProductsProductIdRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/reports'
     | '/stock-movements'
+    | '/suppliers'
     | '/login'
     | '/signup'
     | '/products/$productId'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/reports'
     | '/stock-movements'
+    | '/suppliers'
     | '/login'
     | '/signup'
     | '/products/$productId'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/(app)/inventory'
     | '/(app)/reports'
     | '/(app)/stock-movements'
+    | '/(app)/suppliers'
     | '/(auth)/login'
     | '/(auth)/signup'
     | '/(app)/products/$productId'
@@ -205,6 +217,7 @@ export interface RootRouteChildren {
   appInventoryRoute: typeof appInventoryRoute
   appReportsRoute: typeof appReportsRoute
   appStockMovementsRoute: typeof appStockMovementsRoute
+  appSuppliersRoute: typeof appSuppliersRoute
   authLoginRoute: typeof authLoginRoute
   authSignupRoute: typeof authSignupRoute
   appProductsProductIdRoute: typeof appProductsProductIdRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof authLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(app)/suppliers': {
+      id: '/(app)/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof appSuppliersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(app)/stock-movements': {
@@ -325,6 +345,7 @@ const rootRouteChildren: RootRouteChildren = {
   appInventoryRoute: appInventoryRoute,
   appReportsRoute: appReportsRoute,
   appStockMovementsRoute: appStockMovementsRoute,
+  appSuppliersRoute: appSuppliersRoute,
   authLoginRoute: authLoginRoute,
   authSignupRoute: authSignupRoute,
   appProductsProductIdRoute: appProductsProductIdRoute,

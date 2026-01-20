@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -21,6 +20,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -32,7 +45,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, Loader2, Trash2, Send, Package } from 'lucide-react';
+import { ArrowLeft, Plus, Loader2, Trash2, Send, Package, Check, ChevronsUpDown } from 'lucide-react';
 
 interface Supplier {
   id: string;
@@ -99,7 +112,8 @@ function RouteComponent() {
   const [notes, setNotes] = useState('');
 
   // Add item dialog
-  const [itemDialogOpen, setItemDialogOpen] = useState(false);
+  const [showAddItemForm, setShowAddItemForm] = useState(false);
+  const [variantSearchOpen, setVariantSearchOpen] = useState(false);
   const [selectedVariantId, setSelectedVariantId] = useState('');
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemPrice, setItemPrice] = useState(0);
@@ -235,12 +249,16 @@ function RouteComponent() {
         .eq('id', order.id);
 
       toast.success('Item added');
-      setItemDialogOpen(false);
+      setShowAddItemForm(false);
       setSelectedVariantId('');
       setItemQuantity(1);
       setItemPrice(0);
       fetchOrder(order.id);
     }
+  };
+
+  const getSelectedVariant = () => {
+    return variants.find((v) => v.id === selectedVariantId);
   };
 
   const handleRemoveItem = async (item: OrderItem) => {
@@ -540,69 +558,110 @@ function RouteComponent() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Order Items</h3>
-              {order?.status === 'draft' && (
-                <Dialog open={itemDialogOpen} onOpenChange={setItemDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Item
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Item</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 pt-4">
-                      <div className="space-y-2">
-                        <Label>Product Variant</Label>
-                        <Select
-                          value={selectedVariantId}
-                          onValueChange={setSelectedVariantId}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select product" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {variants.map((v) => (
-                              <SelectItem key={v.id} value={v.id}>
-                                {v.product.name} - {v.size}/{v.color}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Quantity</Label>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={itemQuantity}
-                            onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Unit Price</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            step={0.01}
-                            value={itemPrice}
-                            onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
-                          />
-                        </div>
-                      </div>
-                      <Button onClick={handleAddItem} className="w-full">
-                        Add Item
+          </CardContent>
+        </Card>
+        {order?.status === 'draft' && (
+          <Card className="mb-4 border-dashed">
+            <CardContent className="pt-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Product Variant</Label>
+                  <Popover open={variantSearchOpen} onOpenChange={setVariantSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={variantSearchOpen}
+                        className="w-full justify-between"
+                      >
+                        {selectedVariantId ? (
+                          <>
+                            {getSelectedVariant()?.product.name} - {getSelectedVariant()?.size}/{getSelectedVariant()?.color}
+                          </>
+                        ) : (
+                          "Search products..."
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search product..." />
+                        <CommandList>
+                          <CommandEmpty>No product found.</CommandEmpty>
+                          <CommandGroup>
+                            {variants.map((v) => (
+                              <CommandItem
+                                key={v.id}
+                                value={`${v.product.name} ${v.size} ${v.color}`}
+                                onSelect={() => {
+                                  setSelectedVariantId(v.id);
+                                  setVariantSearchOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedVariantId === v.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div>
+                                  <div>{v.product.name}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {v.size} / {v.color}
+                                  </div>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Quantity</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={itemQuantity}
+                      onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Unit Price</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={itemPrice}
+                      onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleAddItem} className="flex-1">
+                    Add Item
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowAddItemForm(false);
+                      setSelectedVariantId('');
+                      setItemQuantity(1);
+                      setItemPrice(0);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        <Card>
+          <CardContent>
             {items.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No items added yet.
@@ -701,6 +760,6 @@ function RouteComponent() {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </div >
   );
 }
