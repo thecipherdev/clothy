@@ -20,8 +20,10 @@ import {
   ShoppingBag,
   Boxes,
   ArrowLeftRight,
+  ClipboardList,
   BarChart3,
   Users,
+  Truck,
   LogOut,
   FolderTree,
 } from 'lucide-react';
@@ -30,6 +32,8 @@ const mainMenuItems = [
   { title: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { title: 'Products', icon: ShoppingBag, href: '/products' },
   { title: 'Inventory', icon: Boxes, href: '/inventory' },
+  { title: 'Transfers', icon: ArrowLeftRight, href: '/transfers' },
+  { title: 'Purchase Orders', icon: ClipboardList, href: '/purchase-orders' },
   { title: 'Stock Movements', icon: ArrowLeftRight, href: '/stock-movements' },
   { title: 'Reports', icon: BarChart3, href: '/reports' },
 ];
@@ -37,6 +41,7 @@ const mainMenuItems = [
 const adminMenuItems = [
   { title: 'Branches', icon: Store, href: '/branches' },
   { title: 'Categories', icon: FolderTree, href: '/categories' },
+  { title: 'Suppliers', icon: Truck, href: '/suppliers' },
   { title: 'Staff', icon: Users, href: '/staff' },
 ];
 

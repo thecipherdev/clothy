@@ -2,7 +2,6 @@ import { Input } from "@/components/ui/input"
 import { FormBase, FormBaseProps } from "./FormBase";
 import { useFieldContext } from "./hooks"
 
-
 type Props = {
   formBaseProps: FormBaseProps
 } & React.ComponentProps<"input">
