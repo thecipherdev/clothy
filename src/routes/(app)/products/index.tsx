@@ -5,7 +5,6 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -29,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Field, FieldLabel, FieldGroup, FieldError } from '@/components/ui/field'
+import { FieldGroup } from '@/components/ui/field'
 
 
 
@@ -37,6 +36,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, ShoppingBag, Search, Eye } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 
 export interface Category {
@@ -245,17 +245,22 @@ function RouteComponent() {
             Add Product
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        >
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? 'Edit Product' : 'Add New Product'}
             </DialogTitle>
+            <DialogDescription className="text-xs text-[#a0a0a0]">
+              Manage your product information
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={(e: React.FormEvent) => {
             e.preventDefault();
             form.handleSubmit();
           }} className="space-y-4">
-            <Field>
+            <div className="space-y-4">
               <FieldGroup className="grid grid-cols-2 gap-4">
                 <form.AppField
                   name="sku"
@@ -285,7 +290,7 @@ function RouteComponent() {
               <form.AppField
                 name="description"
                 children={(field) => (
-                  <field.Textarea label="Description" />
+                  <field.Textarea formBaseProps={{ label: "Description" }} aria-describedby={field.name} />
                 )}
               />
               <form.AppField
@@ -334,7 +339,7 @@ function RouteComponent() {
                   {editingProduct ? 'Update' : 'Create'}
                 </Button>
               </div>
-            </Field>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

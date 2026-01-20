@@ -2,12 +2,17 @@ import { useFieldContext } from './hooks';
 import { FormBase, FormBaseProps } from './FormBase';
 import { Textarea } from '@/components/ui/textarea';
 
-export function FormTextarea(props: FormBaseProps) {
+type Props = {
+  formBaseProps: FormBaseProps
+} & React.ComponentProps<"textarea">
+
+
+export function FormTextarea({ formBaseProps, ...props }: Props) {
   const field = useFieldContext<string>();
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
   return (
-    <FormBase {...props}>
+    <FormBase {...formBaseProps}>
       <Textarea
         name={field.name}
         id={field.name}
@@ -15,6 +20,7 @@ export function FormTextarea(props: FormBaseProps) {
         onChange={(e) => field.handleChange(e.currentTarget.value)}
         aria-invalid={isInvalid}
         rows={3}
+        {...props}
       />
     </FormBase>
   )

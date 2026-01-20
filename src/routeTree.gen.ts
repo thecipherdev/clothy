@@ -19,7 +19,9 @@ import { Route as appDashboardRouteImport } from './routes/(app)/dashboard'
 import { Route as adminStaffRouteImport } from './routes/(admin)/staff'
 import { Route as adminCategoriesRouteImport } from './routes/(admin)/categories'
 import { Route as adminBranchesRouteImport } from './routes/(admin)/branches'
+import { Route as appPurchaseOrdersIndexRouteImport } from './routes/(app)/purchase-orders/index'
 import { Route as appProductsIndexRouteImport } from './routes/(app)/products/index'
+import { Route as appPurchaseOrdersOrderIdRouteImport } from './routes/(app)/purchase-orders/$orderId'
 import { Route as appProductsProductIdRouteImport } from './routes/(app)/products/$productId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -72,11 +74,22 @@ const adminBranchesRoute = adminBranchesRouteImport.update({
   path: '/branches',
   getParentRoute: () => rootRouteImport,
 } as any)
+const appPurchaseOrdersIndexRoute = appPurchaseOrdersIndexRouteImport.update({
+  id: '/(app)/purchase-orders/',
+  path: '/purchase-orders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const appProductsIndexRoute = appProductsIndexRouteImport.update({
   id: '/(app)/products/',
   path: '/products/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const appPurchaseOrdersOrderIdRoute =
+  appPurchaseOrdersOrderIdRouteImport.update({
+    id: '/(app)/purchase-orders/$orderId',
+    path: '/purchase-orders/$orderId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const appProductsProductIdRoute = appProductsProductIdRouteImport.update({
   id: '/(app)/products/$productId',
   path: '/products/$productId',
@@ -95,7 +108,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
   '/products/$productId': typeof appProductsProductIdRoute
+  '/purchase-orders/$orderId': typeof appPurchaseOrdersOrderIdRoute
   '/products': typeof appProductsIndexRoute
+  '/purchase-orders': typeof appPurchaseOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,7 +124,9 @@ export interface FileRoutesByTo {
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
   '/products/$productId': typeof appProductsProductIdRoute
+  '/purchase-orders/$orderId': typeof appPurchaseOrdersOrderIdRoute
   '/products': typeof appProductsIndexRoute
+  '/purchase-orders': typeof appPurchaseOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,7 +141,9 @@ export interface FileRoutesById {
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/signup': typeof authSignupRoute
   '/(app)/products/$productId': typeof appProductsProductIdRoute
+  '/(app)/purchase-orders/$orderId': typeof appPurchaseOrdersOrderIdRoute
   '/(app)/products/': typeof appProductsIndexRoute
+  '/(app)/purchase-orders/': typeof appPurchaseOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,7 +159,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/products/$productId'
+    | '/purchase-orders/$orderId'
     | '/products'
+    | '/purchase-orders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -154,7 +175,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/products/$productId'
+    | '/purchase-orders/$orderId'
     | '/products'
+    | '/purchase-orders'
   id:
     | '__root__'
     | '/'
@@ -168,7 +191,9 @@ export interface FileRouteTypes {
     | '/(auth)/login'
     | '/(auth)/signup'
     | '/(app)/products/$productId'
+    | '/(app)/purchase-orders/$orderId'
     | '/(app)/products/'
+    | '/(app)/purchase-orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,7 +208,9 @@ export interface RootRouteChildren {
   authLoginRoute: typeof authLoginRoute
   authSignupRoute: typeof authSignupRoute
   appProductsProductIdRoute: typeof appProductsProductIdRoute
+  appPurchaseOrdersOrderIdRoute: typeof appPurchaseOrdersOrderIdRoute
   appProductsIndexRoute: typeof appProductsIndexRoute
+  appPurchaseOrdersIndexRoute: typeof appPurchaseOrdersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -258,11 +285,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof adminBranchesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(app)/purchase-orders/': {
+      id: '/(app)/purchase-orders/'
+      path: '/purchase-orders'
+      fullPath: '/purchase-orders'
+      preLoaderRoute: typeof appPurchaseOrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(app)/products/': {
       id: '/(app)/products/'
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof appProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(app)/purchase-orders/$orderId': {
+      id: '/(app)/purchase-orders/$orderId'
+      path: '/purchase-orders/$orderId'
+      fullPath: '/purchase-orders/$orderId'
+      preLoaderRoute: typeof appPurchaseOrdersOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(app)/products/$productId': {
@@ -287,7 +328,9 @@ const rootRouteChildren: RootRouteChildren = {
   authLoginRoute: authLoginRoute,
   authSignupRoute: authSignupRoute,
   appProductsProductIdRoute: appProductsProductIdRoute,
+  appPurchaseOrdersOrderIdRoute: appPurchaseOrdersOrderIdRoute,
   appProductsIndexRoute: appProductsIndexRoute,
+  appPurchaseOrdersIndexRoute: appPurchaseOrdersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
