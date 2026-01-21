@@ -1,26 +1,35 @@
 import { useFieldContext } from "./hooks";
 import { FormBase, FormBaseProps } from "./FormBase";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
-import { Category } from "@/routes/(app)/products";
+
+type Items = {
+  id: string;
+  name: string;
+}
+
+type Props = {
+  items: Items[];
+  formBaseProps: FormBaseProps;
+  placeholder: string;
+}
 
 
-
-export function FormSelect({ categories, ...props }: FormBaseProps & { categories: Category[] }) {
+export function FormSelect({ formBaseProps, items, placeholder }: Props) {
   const field = useFieldContext<string>();
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
   return (
-    <FormBase {...props}>
+    <FormBase {...formBaseProps}>
       <Select
         name={field.name}
         value={field.state.value}
         onValueChange={field.handleChange}
       >
         <SelectTrigger aria-invalid={isInvalid}>
-          <SelectValue placeholder="Select category" />
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {categories.map((cat: Category) => (
+          {items.map((cat) => (
             <SelectItem key={cat.id} value={cat.id}>
               {cat.name}
             </SelectItem>

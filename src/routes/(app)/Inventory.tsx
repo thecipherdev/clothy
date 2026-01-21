@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { useNavigate, createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Boxes, Search, Plus, Minus, AlertTriangle } from 'lucide-react';
+import { Boxes, Search, Plus, Minus, AlertTriangle, PackagePlus } from 'lucide-react';
 // import { useAuth } from '@/hooks/useAuth';
 
 interface Branch {
@@ -56,6 +55,7 @@ export const Route = createFileRoute('/(app)/inventory')({
 
 function RouteComponent() {
   // const { user } = useAuth();
+  const navigate = useNavigate();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -226,6 +226,13 @@ function RouteComponent() {
               >
                 <AlertTriangle className="h-4 w-4 mr-1" />
                 Low Stock
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => navigate({ to: '/purchase-orders/$orderId', params: { orderId: 'new' } })}
+              >
+                <PackagePlus className="h-4 w-4 mr-1" />
+                Add Stock
               </Button>
             </div>
           </div>

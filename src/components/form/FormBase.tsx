@@ -29,7 +29,7 @@ export function FormBase({
       {description && <FieldDescription>{description}</FieldDescription>}
     </>
   )
-  const errorElement = isInvalid && <FieldError errors={field.state.meta.errors} />
+  const errorElement = (error || isInvalid) && <FieldError errors={field.state.meta.errors} />
 
   return (
     <Field
