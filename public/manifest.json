@@ -1,6 +1,6 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "Clothy",
+  "name": "A clothing inventory management",
   "icons": [
     {
       "src": "favicon.ico",
