@@ -1,5 +1,6 @@
 import { useNavigate, createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,7 +30,6 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Boxes, Search, Plus, Minus, AlertTriangle, PackagePlus } from 'lucide-react';
-// import { useAuth } from '@/hooks/useAuth';
 
 interface Branch {
   id: string;
@@ -49,7 +49,12 @@ interface InventoryItem {
   };
 }
 
+const querySearchSchema = z.object({
+  branchId: z.string().optional()
+})
+
 export const Route = createFileRoute('/(app)/inventory')({
+  validateSearch: querySearchSchema,
   component: RouteComponent,
 })
 
