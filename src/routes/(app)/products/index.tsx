@@ -1,4 +1,4 @@
-import { useRouterState, useRouter, createFileRoute } from '@tanstack/react-router';
+import { useNavigate, createFileRoute } from '@tanstack/react-router';
 import { useAppForm } from '@/components/form/hooks';
 import { useEffect, useState } from 'react';
 import * as z from 'zod';
@@ -31,64 +31,47 @@ import {
 import { FieldGroup } from '@/components/ui/field'
 
 
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, ShoppingBag, Search, Eye } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { DialogDescription } from '@radix-ui/react-dialog';
+import { Product, Category } from '@/features/products/types'
+import { formSchema } from '@/features/products/types/schema';
+import { useUpdateProduct, useCreateProduct } from '@/features/products/model/mutations';
+import { useProducts } from '@/features/products/model/queries';
 
 
-export interface Category {
-  id: string;
-  name: string;
-}
-
-interface Product {
-  id: string;
-  sku: string;
-  name: string;
-  description: string | null;
-  price: number;
-  category_id: string | null;
-  is_active: boolean;
-  created_at: string;
-  categories: Category | null;
-}
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const COLORS = ['Black', 'White', 'Navy', 'Gray', 'Red', 'Blue', 'Green', 'Brown', 'Beige', 'Pink'];
 
-const formSchema = z.object({
-  sku: z.string(),
-  name: z.string(),
-  price: z.string().min(1, 'Make sure you enter product pricing'),
-  category_id: z.string(),
-  description: z.string(),
-  sizes: z.array(z.string()),
-  colors: z.array(z.string()),
+
+const SearchParams = z.object({
+  category_id: z.string().optional(),
+  prod_sku: z.string().optional(),
 })
 
+type SearchParamsType = z.infer<typeof SearchParams>
+
 export const Route = createFileRoute('/(app)/products/')({
+  validateSearch: SearchParams,
   component: RouteComponent,
-  loader: async () => {
-    try {
-      const { data: products } = await supabase
-        .from('products')
-        .select('*, categories(*)')
-      return { products }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-    return {}
-  },
 })
 
 
 function RouteComponent() {
-  const router = useRouter()
-  const routerState = useRouterState()
-  const loading = routerState.status === 'pending'
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+
+  const createProduct = useCreateProduct()
+  const updateProduct = useUpdateProduct(editingProduct as string)
+  const searchParams = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { data: products, isLoading } = useProducts()
+
   const form = useAppForm({
     defaultValues: {
       sku: "",
@@ -105,81 +88,17 @@ function RouteComponent() {
     onSubmit: async ({ value }) => {
       try {
         if (editingProduct) {
-          const { error } = await supabase
-            .from('products')
-            .update({
-              sku: value.sku,
-              name: value.name,
-              description: value.description || null,
-              price: parseFloat(value.price),
-              category_id: value.category_id || null,
-            })
-            .eq('id', editingProduct.id);
-
-          if (error) throw error;
-
-          // Update variants - delete existing and create new
-          await supabase
-            .from('product_variants')
-            .delete()
-            .eq('product_id', editingProduct.id);
-
-          if (value.sizes.length > 0 && value.colors.length > 0) {
-            const variants = value.sizes.flatMap((size) =>
-              value.colors.map((color) => ({
-                product_id: editingProduct.id,
-                size,
-                color,
-              }))
-            );
-            await supabase.from('product_variants').insert(variants);
-          }
-
-          toast.success('Product updated successfully');
+          updateProduct.mutate(value)
         } else {
-          const { data: newProduct, error } = await supabase
-            .from('products')
-            .insert({
-              sku: value.sku,
-              name: value.name,
-              description: value.description || null,
-              price: parseFloat(value.price),
-              category_id: value.category_id || null,
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-
-          // Create variants
-          if (value.sizes.length > 0 && value.colors.length > 0) {
-            const variants = value.sizes.flatMap((size) =>
-              value.colors.map((color) => ({
-                product_id: newProduct.id,
-                size,
-                color,
-              }))
-            );
-            await supabase.from('product_variants').insert(variants);
-          }
-
-          toast.success('Product created successfully');
+          createProduct.mutate(value)
         }
-
         setIsDialogOpen(false);
-        router.invalidate()
       } catch (error: any) {
         console.error('Error saving product:', error);
         toast.error(error.message || 'Failed to save product');
       }
     }
   })
-  const { products } = Route.useLoaderData()
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     fetchCategories();
@@ -201,7 +120,7 @@ function RouteComponent() {
 
   const handleOpenDialog = async (product?: Product) => {
     if (product) {
-      setEditingProduct(product);
+      setEditingProduct(product.id);
 
       // Fetch existing variants
       const { data: variants } = await supabase
@@ -227,122 +146,23 @@ function RouteComponent() {
     setIsDialogOpen(true);
   };
 
-  const filteredProducts = products?.filter((product) => {
+  const filteredProducts = products?.data?.filter((product) => {
+    const s = Object.keys(searchParams)
+
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchQuery.toLowerCase());
+      product.name.toLowerCase().includes((searchParams.prod_sku || '').toLowerCase()) ||
+      product.sku.toLowerCase().includes((searchParams.prod_sku || '').toLowerCase());
     const matchesCategory =
-      selectedCategory === 'all' || product.category_id === selectedCategory;
+      searchParams.category_id === 'all' || s.length === 0 || product.category_id === searchParams.category_id;
     return matchesSearch && matchesCategory;
   });
 
+  const updateFilter = (name: keyof SearchParamsType, value: unknown) => {
+    return navigate({ search: (prev) => ({ ...prev, [name]: value }) })
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="ml-auto w-fit" onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
-        </DialogTrigger>
-        <DialogContent
-          className="max-w-2xl max-h-[90vh] overflow-y-auto"
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {editingProduct ? 'Edit Product' : 'Add New Product'}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#a0a0a0]">
-              Manage your product information
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={(e: React.FormEvent) => {
-            e.preventDefault();
-            form.handleSubmit();
-          }} className="space-y-4">
-            <div className="space-y-4">
-              <FieldGroup className="grid grid-cols-2 gap-4">
-                <form.AppField
-                  name="sku"
-                  children={(field) => (
-                    <field.Input formBaseProps={{ label: "SKU" }} />
-                  )}
-                />
-                <form.AppField
-                  name="price"
-                  children={(field) => (
-                    <field.Input formBaseProps={{ label: "Price" }} />
-                  )}
-                />
-              </FieldGroup>
-              <form.AppField
-                name="name"
-                children={(field) => (
-                  <field.Input formBaseProps={{ label: "Product Name" }} />
-                )}
-              />
-              <form.AppField
-                name="category_id"
-                children={(field) => (
-                  <field.Select label="Category" categories={categories} />
-                )}
-              />
-              <form.AppField
-                name="description"
-                children={(field) => (
-                  <field.Textarea formBaseProps={{ label: "Description" }} aria-describedby={field.name} />
-                )}
-              />
-              <form.AppField
-                name="sizes"
-                children={(field) => {
-                  const toggleSize = (size: string) => {
-                    const currentSize = field.state.value || []
-                    const index = currentSize.indexOf(size)
-
-                    if (index > -1) {
-                      field.removeValue(index)
-                    } else {
-                      field.pushValue(size)
-                    }
-                  }
-                  return <field.BadgeSelect label="Sizes" items={SIZES} onClick={toggleSize} />
-                }}
-
-              />
-              <form.AppField
-                mode="array"
-                name="colors"
-                children={(field) => {
-                  const toggleColor = (color: string) => {
-                    const currentColors = field.state.value || [];
-                    const index = currentColors.indexOf(color)
-
-                    if (index > -1) {
-                      field.removeValue(index)
-                    } else {
-                      field.pushValue(color)
-                    }
-                  }
-                  return <field.BadgeSelect label="Colors" items={COLORS} onClick={toggleColor} />
-                }}
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingProduct ? 'Update' : 'Create'}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -355,17 +175,17 @@ function RouteComponent() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchParams.prod_sku}
+                  onChange={(e) => updateFilter('prod_sku', e.target.value)}
                   className="pl-9 w-[200px]"
                 />
               </div>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select value={searchParams.category_id} onValueChange={(value) => (updateFilter("category_id", value))}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="All categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem key="all" value="all">All Categories</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
@@ -373,11 +193,118 @@ function RouteComponent() {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+
+                <DialogTrigger asChild>
+                  <Button size="sm" className="ml-auto w-fit" onClick={() => handleOpenDialog()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </Button>
+                </DialogTrigger>
+                <DialogContent
+                  className="max-w-2xl max-h-[90vh] overflow-y-auto"
+                >
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingProduct ? 'Edit Product' : 'Add New Product'}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-[#a0a0a0]">
+                      Manage your product information
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={(e: React.FormEvent) => {
+                    e.preventDefault();
+                    form.handleSubmit();
+                  }} className="space-y-4">
+                    <div className="space-y-4">
+                      <FieldGroup className="grid grid-cols-2 gap-4">
+                        <form.AppField
+                          name="sku"
+                          children={(field) => (
+                            <field.Input formBaseProps={{ label: "SKU" }} />
+                          )}
+                        />
+                        <form.AppField
+                          name="price"
+                          children={(field) => (
+                            <field.Input formBaseProps={{ label: "Price" }} />
+                          )}
+                        />
+                      </FieldGroup>
+                      <form.AppField
+                        name="name"
+                        children={(field) => (
+                          <field.Input formBaseProps={{ label: "Product Name" }} />
+                        )}
+                      />
+                      <form.AppField
+                        name="category_id"
+                        children={(field) => (
+                          <field.Select formBaseProps={{ label: "Category" }} items={categories} placeholder="Select Categories" />
+                        )}
+                      />
+                      <form.AppField
+                        name="description"
+                        children={(field) => (
+                          <field.Textarea formBaseProps={{ label: "Description" }} aria-describedby={field.name} />
+                        )}
+                      />
+                      <form.AppField
+                        name="sizes"
+                        children={(field) => {
+                          const toggleSize = (size: string) => {
+                            const currentSize = field.state.value || []
+                            const index = currentSize.indexOf(size)
+
+                            if (index > -1) {
+                              field.removeValue(index)
+                            } else {
+                              field.pushValue(size)
+                            }
+                          }
+                          return <field.BadgeSelect label="Sizes" items={SIZES} onClick={toggleSize} />
+                        }}
+
+                      />
+                      <form.AppField
+                        mode="array"
+                        name="colors"
+                        children={(field) => {
+                          const toggleColor = (color: string) => {
+                            const currentColors = field.state.value || [];
+                            const index = currentColors.indexOf(color)
+
+                            if (index > -1) {
+                              field.removeValue(index)
+                            } else {
+                              field.pushValue(color)
+                            }
+                          }
+                          return <field.BadgeSelect label="Colors" items={COLORS} onClick={toggleColor} />
+                        }}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit">
+                          {editingProduct ? 'Update' : 'Create'}
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             </div>
