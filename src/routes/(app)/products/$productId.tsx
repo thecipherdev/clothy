@@ -1,9 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { createFileRoute, useNavigate  } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { ArrowLeft, Package } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -11,29 +12,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { ArrowLeft, Package } from 'lucide-react';
-
+} from '@/components/ui/table'
+import { supabase } from '@/integrations/supabase/client'
 
 interface ProductVariant {
-  id: string;
-  size: string;
-  color: string;
-  inventory: {
-    quantity: number;
-    branch: { name: string };
-  }[];
+  id: string
+  size: string
+  color: string
+  inventory: Array<{
+    quantity: number
+    branch: { name: string }
+  }>
 }
 
 interface Product {
-  id: string;
-  sku: string;
-  name: string;
-  description: string | null;
-  price: number;
-  categories: { name: string } | null;
+  id: string
+  sku: string
+  name: string
+  description: string | null
+  price: number
+  categories: { name: string } | null
 }
 
 export const Route = createFileRoute('/(app)/products/$productId')({
@@ -42,16 +40,16 @@ export const Route = createFileRoute('/(app)/products/$productId')({
 
 function RouteComponent() {
   const { productId } = Route.useParams()
-  const navigate = useNavigate();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [variants, setVariants] = useState<ProductVariant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
+  const [product, setProduct] = useState<Product | null>(null)
+  const [variants, setVariants] = useState<Array<ProductVariant>>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (productId) {
-      fetchProductDetails();
+      fetchProductDetails()
     }
-  }, [productId]);
+  }, [productId])
 
   async function fetchProductDetails() {
     try {
@@ -59,22 +57,23 @@ function RouteComponent() {
         .from('products')
         .select('*, categories(name)')
         .eq('id', productId)
-        .maybeSingle();
+        .maybeSingle()
 
-      if (productError) throw productError;
+      if (productError) throw productError
       if (!productData) {
-        toast.error('Product not found');
+        toast.error('Product not found')
         navigate({
-          to: '/products'
-        });
-        return;
+          to: '/products',
+        })
+        return
       }
 
-      setProduct(productData);
+      setProduct(productData)
 
       const { data: variantData, error: variantError } = await supabase
         .from('product_variants')
-        .select(`
+        .select(
+          `
           id,
           size,
           color,
@@ -82,18 +81,19 @@ function RouteComponent() {
             quantity,
             branch:branches(name)
           )
-        `)
+        `,
+        )
         .eq('product_id', productId)
         .order('size')
-        .order('color');
+        .order('color')
 
-      if (variantError) throw variantError;
-      setVariants(variantData || []);
+      if (variantError) throw variantError
+      setVariants(variantData || [])
     } catch (error) {
-      console.error('Error fetching product:', error);
-      toast.error('Failed to load product');
+      console.error('Error fetching product:', error)
+      toast.error('Failed to load product')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -102,18 +102,24 @@ function RouteComponent() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   if (!product) {
-    return null;
+    return null
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <Button className="w-fit ml-auto" variant="outline" onClick={() => navigate({
-        to: '/products'
-      })}>
+      <Button
+        className="w-fit ml-auto"
+        variant="outline"
+        onClick={() =>
+          navigate({
+            to: '/products',
+          })
+        }
+      >
         <ArrowLeft className="h-4 w-4 mr-1" />
         Back to Products
       </Button>
@@ -124,7 +130,9 @@ function RouteComponent() {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-xl">{product.name}</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">SKU: {product.sku}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  SKU: {product.sku}
+                </p>
               </div>
               <Badge>{product.categories?.name || 'Uncategorized'}</Badge>
             </div>
@@ -132,12 +140,20 @@ function RouteComponent() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Price</p>
-                <p className="text-lg font-semibold">${product.price.toFixed(2)}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Price
+                </p>
+                <p className="text-lg font-semibold">
+                  ${product.price.toFixed(2)}
+                </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Description</p>
-                <p className="text-sm">{product.description || 'No description'}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Description
+                </p>
+                <p className="text-sm">
+                  {product.description || 'No description'}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -175,13 +191,17 @@ function RouteComponent() {
                       </TableCell>
                       <TableCell>
                         {variant.inventory.length === 0 ? (
-                          <span className="text-muted-foreground text-sm">No stock records</span>
+                          <span className="text-muted-foreground text-sm">
+                            No stock records
+                          </span>
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {variant.inventory.map((inv, idx) => (
                               <Badge
                                 key={idx}
-                                variant={inv.quantity > 0 ? 'default' : 'secondary'}
+                                variant={
+                                  inv.quantity > 0 ? 'default' : 'secondary'
+                                }
                               >
                                 {inv.branch.name}: {inv.quantity}
                               </Badge>
@@ -198,5 +218,5 @@ function RouteComponent() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

@@ -1,4 +1,10 @@
-import { z } from 'zod';
+import { z } from 'zod'
+import { useAppForm } from '@/components/form/hooks'
+
+export type ProductFormData = z.infer<typeof formSchema>
+export type UseAppForm = ReturnType<typeof useAppForm>
+
+export type SearchParamsType = z.infer<typeof SearchParams>
 
 export const formSchema = z.object({
   sku: z.string(),
@@ -13,7 +19,7 @@ export const formSchema = z.object({
 export const ProductInputSchema = z.object({
   limit: z.number().min(1).max(100).default(50),
   categoryId: z.string().optional(),
-});
+})
 
 export const ProductForm = z.object({
   sku: z.string(),
@@ -27,8 +33,11 @@ export const ProductForm = z.object({
 
 export const UpdateProductFormData = z.object({
   product: ProductForm,
-  editingProduct: z.string()
+  editingProduct: z.string(),
 })
 
+export const SearchParams = z.object({
+  category_id: z.string().optional(),
+  prod_sku: z.string().optional(),
+})
 
-export type ProductFormData = z.infer<typeof formSchema>;

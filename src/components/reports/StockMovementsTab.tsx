@@ -1,6 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  ArrowDownLeft,
+  ArrowLeftRight,
+  ArrowUpRight,
+  Download,
+} from 'lucide-react'
+import { format } from 'date-fns'
+import type {
+  Branch,
+  StockMovementItem,
+  StockMovementSummary,
+} from '@/hooks/useReportsData'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -8,28 +20,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui/table'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Download, ArrowDownLeft, ArrowUpRight, ArrowLeftRight } from 'lucide-react';
-import { format } from 'date-fns';
-import { StockMovementItem, StockMovementSummary, Branch } from '@/hooks/useReportsData';
-import { exportToCSV } from '@/lib/export';
+} from '@/components/ui/select'
+import { exportToCSV } from '@/lib/export'
 
 interface StockMovementsTabProps {
-  movements: StockMovementItem[];
-  summary: StockMovementSummary;
-  branches: Branch[];
-  dateRange: string;
-  setDateRange: (value: string) => void;
-  selectedBranch: string;
-  setSelectedBranch: (value: string) => void;
-  loading: boolean;
+  movements: Array<StockMovementItem>
+  summary: StockMovementSummary
+  branches: Array<Branch>
+  dateRange: string
+  setDateRange: (value: string) => void
+  selectedBranch: string
+  setSelectedBranch: (value: string) => void
+  loading: boolean
 }
 
 export function StockMovementsTab({
@@ -49,9 +58,9 @@ export function StockMovementsTab({
       adjustment_remove: 'Stock Removed',
       transfer_in: 'Transfer In',
       transfer_out: 'Transfer Out',
-    };
-    return labels[type] || type;
-  };
+    }
+    return labels[type] || type
+  }
 
   const getMovementBadge = (type: string, quantity: number) => {
     if (type.includes('transfer')) {
@@ -60,7 +69,7 @@ export function StockMovementsTab({
           <ArrowLeftRight className="h-3 w-3" />
           Transfer
         </Badge>
-      );
+      )
     }
     if (quantity > 0) {
       return (
@@ -68,22 +77,25 @@ export function StockMovementsTab({
           <ArrowDownLeft className="h-3 w-3" />
           IN
         </Badge>
-      );
+      )
     }
     return (
-      <Badge variant="secondary" className="gap-1 bg-destructive/20 text-destructive">
+      <Badge
+        variant="secondary"
+        className="gap-1 bg-destructive/20 text-destructive"
+      >
         <ArrowUpRight className="h-3 w-3" />
         OUT
       </Badge>
-    );
-  };
+    )
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -98,7 +110,9 @@ export function StockMovementsTab({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Stock In</p>
-                <p className="text-2xl font-bold">{summary.stock_in.toLocaleString()}</p>
+                <p className="text-2xl font-bold">
+                  {summary.stock_in.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -111,7 +125,9 @@ export function StockMovementsTab({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Stock Out</p>
-                <p className="text-2xl font-bold">{summary.stock_out.toLocaleString()}</p>
+                <p className="text-2xl font-bold">
+                  {summary.stock_out.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -124,7 +140,9 @@ export function StockMovementsTab({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Transfers</p>
-                <p className="text-2xl font-bold">{summary.transfers.toLocaleString()}</p>
+                <p className="text-2xl font-bold">
+                  {summary.transfers.toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -162,14 +180,19 @@ export function StockMovementsTab({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => exportToCSV(movements.map(m => ({
-                Date: format(new Date(m.date), 'yyyy-MM-dd HH:mm'),
-                Product: m.product_name,
-                Variant: m.variant_label,
-                Type: getMovementTypeLabel(m.movement_type),
-                Quantity: m.quantity,
-                Branch: m.branch_name,
-              })), 'stock-movements')}
+              onClick={() =>
+                exportToCSV(
+                  movements.map((m) => ({
+                    Date: format(new Date(m.date), 'yyyy-MM-dd HH:mm'),
+                    Product: m.product_name,
+                    Variant: m.variant_label,
+                    Type: getMovementTypeLabel(m.movement_type),
+                    Quantity: m.quantity,
+                    Branch: m.branch_name,
+                  })),
+                  'stock-movements',
+                )
+              }
             >
               <Download className="h-4 w-4 mr-1" />
               Export
@@ -200,14 +223,30 @@ export function StockMovementsTab({
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{movement.product_name}</div>
-                        <div className="text-sm text-muted-foreground">{movement.variant_label}</div>
+                        <div className="font-medium">
+                          {movement.product_name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {movement.variant_label}
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>{getMovementBadge(movement.movement_type, movement.quantity)}</TableCell>
+                    <TableCell>
+                      {getMovementBadge(
+                        movement.movement_type,
+                        movement.quantity,
+                      )}
+                    </TableCell>
                     <TableCell className="text-right font-medium">
-                      <span className={movement.quantity > 0 ? 'text-success' : 'text-destructive'}>
-                        {movement.quantity > 0 ? '+' : ''}{movement.quantity}
+                      <span
+                        className={
+                          movement.quantity > 0
+                            ? 'text-success'
+                            : 'text-destructive'
+                        }
+                      >
+                        {movement.quantity > 0 ? '+' : ''}
+                        {movement.quantity}
                       </span>
                     </TableCell>
                     <TableCell>{movement.branch_name}</TableCell>
@@ -224,5 +263,5 @@ export function StockMovementsTab({
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

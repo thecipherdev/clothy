@@ -1,24 +1,33 @@
-import { useNavigate, createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import * as z from 'zod'
+import { toast } from 'sonner'
+import {
+  AlertTriangle,
+  Boxes,
+  Minus,
+  PackagePlus,
+  Plus,
+  Search,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -26,31 +35,29 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Boxes, Search, Plus, Minus, AlertTriangle, PackagePlus } from 'lucide-react';
+} from '@/components/ui/table'
+import { supabase } from '@/integrations/supabase/client'
 
 interface Branch {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 interface InventoryItem {
-  id: string;
-  quantity: number;
-  low_stock_threshold: number;
-  branch: { id: string; name: string };
+  id: string
+  quantity: number
+  low_stock_threshold: number
+  branch: { id: string; name: string }
   variant: {
-    id: string;
-    size: string;
-    color: string;
-    product: { id: string; name: string; sku: string };
-  };
+    id: string
+    size: string
+    color: string
+    product: { id: string; name: string; sku: string }
+  }
 }
 
 const querySearchSchema = z.object({
-  branchId: z.string().optional()
+  branchId: z.string().optional(),
 })
 
 export const Route = createFileRoute('/(app)/inventory')({
@@ -60,29 +67,31 @@ export const Route = createFileRoute('/(app)/inventory')({
 
 function RouteComponent() {
   // const { user } = useAuth();
-  const navigate = useNavigate();
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedBranch, setSelectedBranch] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showLowStock, setShowLowStock] = useState(false);
-  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
-  const [selectedInventory, setSelectedInventory] = useState<InventoryItem | null>(null);
-  const [adjustmentType, setAdjustmentType] = useState<'in' | 'out'>('in');
-  const [adjustmentQuantity, setAdjustmentQuantity] = useState('');
-  const [adjustmentReason, setAdjustmentReason] = useState('');
+  const navigate = useNavigate()
+  const [inventory, setInventory] = useState<Array<InventoryItem>>([])
+  const [branches, setBranches] = useState<Array<Branch>>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedBranch, setSelectedBranch] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showLowStock, setShowLowStock] = useState(false)
+  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false)
+  const [selectedInventory, setSelectedInventory] =
+    useState<InventoryItem | null>(null)
+  const [adjustmentType, setAdjustmentType] = useState<'in' | 'out'>('in')
+  const [adjustmentQuantity, setAdjustmentQuantity] = useState('')
+  const [adjustmentReason, setAdjustmentReason] = useState('')
 
   useEffect(() => {
-    fetchInventory();
-    fetchBranches();
-  }, []);
+    fetchInventory()
+    fetchBranches()
+  }, [])
 
   async function fetchInventory() {
     try {
       const { data, error } = await supabase
         .from('inventory')
-        .select(`
+        .select(
+          `
           id,
           quantity,
           low_stock_threshold,
@@ -93,16 +102,17 @@ function RouteComponent() {
             color,
             product:products(id, name, sku)
           )
-        `)
-        .order('quantity');
+        `,
+        )
+        .order('quantity')
 
-      if (error) throw error;
-      setInventory(data || []);
+      if (error) throw error
+      setInventory(data || [])
     } catch (error) {
-      console.error('Error fetching inventory:', error);
-      toast.error('Failed to load inventory');
+      console.error('Error fetching inventory:', error)
+      toast.error('Failed to load inventory')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -112,52 +122,52 @@ function RouteComponent() {
         .from('branches')
         .select('id, name')
         .eq('is_active', true)
-        .order('name');
+        .order('name')
 
-      if (error) throw error;
-      setBranches(data || []);
+      if (error) throw error
+      setBranches(data || [])
     } catch (error) {
-      console.error('Error fetching branches:', error);
+      console.error('Error fetching branches:', error)
     }
   }
 
   const handleAdjustStock = (item: InventoryItem, type: 'in' | 'out') => {
-    setSelectedInventory(item);
-    setAdjustmentType(type);
-    setAdjustmentQuantity('');
-    setAdjustmentReason('');
-    setIsAdjustDialogOpen(true);
-  };
+    setSelectedInventory(item)
+    setAdjustmentType(type)
+    setAdjustmentQuantity('')
+    setAdjustmentReason('')
+    setIsAdjustDialogOpen(true)
+  }
 
   const submitAdjustment = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!selectedInventory || !adjustmentQuantity) return;
+    if (!selectedInventory || !adjustmentQuantity) return
 
-    const quantity = parseInt(adjustmentQuantity);
+    const quantity = parseInt(adjustmentQuantity)
     if (quantity <= 0) {
-      toast.error('Quantity must be greater than 0');
-      return;
+      toast.error('Quantity must be greater than 0')
+      return
     }
 
     if (adjustmentType === 'out' && quantity > selectedInventory.quantity) {
-      toast.error('Cannot remove more than available stock');
-      return;
+      toast.error('Cannot remove more than available stock')
+      return
     }
 
     try {
       const newQuantity =
         adjustmentType === 'in'
           ? selectedInventory.quantity + quantity
-          : selectedInventory.quantity - quantity;
+          : selectedInventory.quantity - quantity
 
       // Update inventory
       const { error: updateError } = await supabase
         .from('inventory')
         .update({ quantity: newQuantity })
-        .eq('id', selectedInventory.id);
+        .eq('id', selectedInventory.id)
 
-      if (updateError) throw updateError;
+      if (updateError) throw updateError
 
       // Record movement
       const { error: movementError } = await supabase
@@ -168,29 +178,35 @@ function RouteComponent() {
           quantity: quantity,
           reason: adjustmentReason || null,
           performed_by: '2214933b-7c33-480e-9177-5b53a1e8d2d0',
-        });
+        })
 
-      if (movementError) throw movementError;
+      if (movementError) throw movementError
 
-      toast.success(`Stock ${adjustmentType === 'in' ? 'added' : 'removed'} successfully`);
-      setIsAdjustDialogOpen(false);
-      fetchInventory();
+      toast.success(
+        `Stock ${adjustmentType === 'in' ? 'added' : 'removed'} successfully`,
+      )
+      setIsAdjustDialogOpen(false)
+      fetchInventory()
     } catch (error: any) {
-      console.error('Error adjusting stock:', error);
-      toast.error(error.message || 'Failed to adjust stock');
+      console.error('Error adjusting stock:', error)
+      toast.error(error.message || 'Failed to adjust stock')
     }
-  };
+  }
 
   const filteredInventory = inventory.filter((item) => {
     const matchesSearch =
-      item.variant?.product?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.variant?.product?.sku.toLowerCase().includes(searchQuery.toLowerCase());
+      item.variant?.product?.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      item.variant?.product?.sku
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
     const matchesBranch =
-      selectedBranch === 'all' || item.branch?.id === selectedBranch;
+      selectedBranch === 'all' || item.branch?.id === selectedBranch
     const matchesLowStock =
-      !showLowStock || item.quantity < item.low_stock_threshold;
-    return matchesSearch && matchesBranch && matchesLowStock;
-  });
+      !showLowStock || item.quantity < item.low_stock_threshold
+    return matchesSearch && matchesBranch && matchesLowStock
+  })
 
   return (
     <>
@@ -234,7 +250,12 @@ function RouteComponent() {
               </Button>
               <Button
                 size="sm"
-                onClick={() => navigate({ to: '/purchase-orders/$orderId', params: { orderId: 'new' } })}
+                onClick={() =>
+                  navigate({
+                    to: '/purchase-orders/$orderId',
+                    params: { orderId: 'new' },
+                  })
+                }
               >
                 <PackagePlus className="h-4 w-4 mr-1" />
                 Add Stock
@@ -269,7 +290,9 @@ function RouteComponent() {
                   <TableRow key={item.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{item.variant?.product?.name}</p>
+                        <p className="font-medium">
+                          {item.variant?.product?.name}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {item.variant?.product?.sku}
                         </p>
@@ -282,7 +305,9 @@ function RouteComponent() {
                       </div>
                     </TableCell>
                     <TableCell>{item.branch?.name}</TableCell>
-                    <TableCell className="font-medium">{item.quantity}</TableCell>
+                    <TableCell className="font-medium">
+                      {item.quantity}
+                    </TableCell>
                     <TableCell>
                       {item.quantity < item.low_stock_threshold ? (
                         <Badge variant="destructive">Low Stock</Badge>
@@ -331,13 +356,19 @@ function RouteComponent() {
           {selectedInventory && (
             <form onSubmit={submitAdjustment} className="space-y-4">
               <div className="p-3 bg-muted rounded-lg">
-                <p className="font-medium">{selectedInventory.variant?.product?.name}</p>
+                <p className="font-medium">
+                  {selectedInventory.variant?.product?.name}
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedInventory.variant?.size} / {selectedInventory.variant?.color} •{' '}
+                  {selectedInventory.variant?.size} /{' '}
+                  {selectedInventory.variant?.color} •{' '}
                   {selectedInventory.branch?.name}
                 </p>
                 <p className="text-sm mt-1">
-                  Current stock: <span className="font-medium">{selectedInventory.quantity}</span>
+                  Current stock:{' '}
+                  <span className="font-medium">
+                    {selectedInventory.quantity}
+                  </span>
                 </p>
               </div>
               <div className="space-y-2">
@@ -346,7 +377,11 @@ function RouteComponent() {
                   id="quantity"
                   type="number"
                   min="1"
-                  max={adjustmentType === 'out' ? selectedInventory.quantity : undefined}
+                  max={
+                    adjustmentType === 'out'
+                      ? selectedInventory.quantity
+                      : undefined
+                  }
                   value={adjustmentQuantity}
                   onChange={(e) => setAdjustmentQuantity(e.target.value)}
                   required
@@ -382,6 +417,5 @@ function RouteComponent() {
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }
-

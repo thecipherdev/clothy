@@ -22,7 +22,7 @@
 
 **_Note:_** Change for additional reviewers/assignees, then reviewer will check the box once approved
 
-- [ ] 
+- [ ]
 - [ ]
 
 ## Assignees

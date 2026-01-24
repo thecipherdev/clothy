@@ -1,15 +1,21 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react';
-import { useNavigate, Link } from '@tanstack/react-router';
+import { Link, createFileRoute, useNavigate  } from '@tanstack/react-router'
+import { useState } from 'react'
 import * as z from 'zod'
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAppForm } from '@/components/form/hooks';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { Shirt } from 'lucide-react';
-import { FieldGroup, FieldLabel, FieldError } from '@/components/ui/field';
+import { toast } from 'sonner'
+import { Shirt } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useAppForm } from '@/components/form/hooks'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 
 export const Route = createFileRoute('/(auth)/login')({
   component: RouteComponent,
@@ -17,45 +23,42 @@ export const Route = createFileRoute('/(auth)/login')({
 
 const formSchema = z.object({
   email: z.email(),
-  password: z
-    .string()
-    .min(6, "Password must at least 6 characters long.")
+  password: z.string().min(6, 'Password must at least 6 characters long.'),
 })
 
 function RouteComponent() {
-  const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false)
+  const { signIn } = useAuth()
+  const navigate = useNavigate()
 
   const form = useAppForm({
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
     validators: {
-      onSubmit: formSchema
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      setLoading(true);
+      setLoading(true)
 
       const { email, password } = value
 
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email, password)
       console.log('error', error)
 
       if (error) {
-        toast.error(error.message);
+        toast.error(error.message)
       } else {
-        toast.success('Welcome back!');
+        toast.success('Welcome back!')
         navigate({
           to: '/dashboard',
-        });
+        })
       }
 
-      setLoading(false);
-    }
-  });
-
+      setLoading(false)
+    },
+  })
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -69,26 +72,39 @@ function RouteComponent() {
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>Sign in to your inventory account</CardDescription>
         </CardHeader>
-        <form onSubmit={(e: React.FormEvent) => {
-          e.preventDefault();
-          form.handleSubmit()
-        }}>
+        <form
+          onSubmit={(e: React.FormEvent) => {
+            e.preventDefault()
+            form.handleSubmit()
+          }}
+        >
           <FieldGroup>
             <CardContent className="space-y-4 mb-4">
               <form.AppField
                 name="email"
                 children={(field) => (
-                  <field.Input formBaseProps={{ label: "Email" }} placeholder="you@example.com" type="email" id={field.name} className="rounded" />
+                  <field.Input
+                    formBaseProps={{ label: 'Email' }}
+                    placeholder="you@example.com"
+                    type="email"
+                    id={field.name}
+                    className="rounded"
+                  />
                 )}
               />
               <form.AppField
                 name="password"
                 children={(field) => (
-                  <field.Input formBaseProps={{ label: "Password" }} placeholder="••••••••" type="password" id={field.name} className="rounded" />
+                  <field.Input
+                    formBaseProps={{ label: 'Password' }}
+                    placeholder="••••••••"
+                    type="password"
+                    id={field.name}
+                    className="rounded"
+                  />
                 )}
               />
             </CardContent>
-
           </FieldGroup>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full rounded" disabled={loading}>
@@ -104,5 +120,5 @@ function RouteComponent() {
         </form>
       </Card>
     </div>
-  );
+  )
 }

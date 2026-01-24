@@ -1,14 +1,24 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { useAppForm } from '@/components/form/hooks';
+import { useEffect, useState } from 'react'
+import * as z from 'zod'
+import { toast } from 'sonner'
+import {
+  Building2,
+  Loader2,
+  Mail,
+  Pencil,
+  Phone,
+  Plus,
+  User,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
+import { useAppForm } from '@/components/form/hooks'
 
 import {
   Dialog,
@@ -16,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -24,22 +34,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import { Plus, Pencil, Loader2, Building2, Mail, Phone, User } from 'lucide-react';
+} from '@/components/ui/table'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Supplier {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  contact_person: string | null;
-  notes: string | null;
-  is_active: boolean;
-  created_at: string;
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  address: string | null
+  contact_person: string | null
+  notes: string | null
+  is_active: boolean
+  created_at: string
 }
 
 export const Route = createFileRoute('/(app)/suppliers')({
@@ -53,49 +61,42 @@ const formSchema = z.object({
   contactPerson: z.string(),
   address: z.string().optional(),
   notes: z.string().optional(),
-  isActive: z.boolean()
+  isActive: z.boolean(),
 })
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.infer<typeof formSchema>
 
 function RouteComponent() {
-  const { role } = useAuth();
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const { role } = useAuth()
+  const [suppliers, setSuppliers] = useState<Array<Supplier>>([])
+  const [loading, setLoading] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const form = useAppForm({
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      contactPerson: "",
-      address: "",
-      notes: "",
+      name: '',
+      email: '',
+      phone: '',
+      contactPerson: '',
+      address: '',
+      notes: '',
       isActive: true,
     } satisfies FormData as FormData,
     validators: {
-      onSubmit: formSchema
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      const {
-        name,
-        email,
-        phone,
-        address,
-        contactPerson,
-        notes,
-        isActive,
-      } = value;
+      const { name, email, phone, address, contactPerson, notes, isActive } =
+        value
 
       if (!name.trim()) {
-        toast.error('Supplier name is required');
-        return;
+        toast.error('Supplier name is required')
+        return
       }
 
-      setSubmitting(true);
+      setSubmitting(true)
 
       const supplierData = {
         name: name.trim(),
@@ -105,63 +106,56 @@ function RouteComponent() {
         contact_person: contactPerson.trim() || '',
         notes: notes?.trim() || '',
         is_active: isActive,
-      };
+      }
 
-      let error;
+      let error
 
       if (editingSupplier) {
-        ({ error } = await supabase
+        ;({ error } = await supabase
           .from('suppliers')
           .update(supplierData)
-          .eq('id', editingSupplier.id));
+          .eq('id', editingSupplier.id))
       } else {
-        ({ error } = await supabase.from('suppliers').insert(supplierData));
+        ;({ error } = await supabase.from('suppliers').insert(supplierData))
       }
 
       if (error) {
-        console.error('Error saving supplier:', error);
-        toast.error('Failed to save supplier');
+        console.error('Error saving supplier:', error)
+        toast.error('Failed to save supplier')
       } else {
-        toast.success(editingSupplier ? 'Supplier updated' : 'Supplier created');
-        setDialogOpen(false);
-        form.reset();
-        fetchSuppliers();
+        toast.success(editingSupplier ? 'Supplier updated' : 'Supplier created')
+        setDialogOpen(false)
+        form.reset()
+        fetchSuppliers()
       }
 
-      setSubmitting(false);
-    }
+      setSubmitting(false)
+    },
   })
 
   useEffect(() => {
-    fetchSuppliers();
-  }, []);
+    fetchSuppliers()
+  }, [])
 
   const fetchSuppliers = async () => {
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
-      .order('name');
+      .order('name')
 
     if (error) {
-      console.error('Error fetching suppliers:', error);
-      toast.error('Failed to load suppliers');
+      console.error('Error fetching suppliers:', error)
+      toast.error('Failed to load suppliers')
     } else {
-      setSuppliers(data || []);
+      setSuppliers(data || [])
     }
-    setLoading(false);
-  };
+    setLoading(false)
+  }
 
   const openEditDialog = (supplier: Supplier) => {
-    const {
-      name,
-      email,
-      phone,
-      address,
-      contact_person,
-      notes,
-      is_active,
-    } = supplier;
-    setEditingSupplier(supplier);
+    const { name, email, phone, address, contact_person, notes, is_active } =
+      supplier
+    setEditingSupplier(supplier)
     form.setFieldValue('name', name)
     form.setFieldValue('email', email || '')
     form.setFieldValue('phone', phone || '')
@@ -169,20 +163,20 @@ function RouteComponent() {
     form.setFieldValue('contactPerson', contact_person || '')
     form.setFieldValue('notes', notes || '')
     form.setFieldValue('isActive', is_active)
-    setDialogOpen(true);
-  };
+    setDialogOpen(true)
+  }
 
   const handleDialogChange = (open: boolean) => {
-    setDialogOpen(open);
-    if (!open) form.reset();
-  };
+    setDialogOpen(open)
+    if (!open) form.reset()
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    );
+    )
   }
 
   return (
@@ -213,20 +207,29 @@ function RouteComponent() {
                   <form.AppField
                     name="name"
                     children={(field) => (
-                      <field.Input formBaseProps={{ label: "Company Name *" }} placeholder="Enter supplier name" />
+                      <field.Input
+                        formBaseProps={{ label: 'Company Name *' }}
+                        placeholder="Enter supplier name"
+                      />
                     )}
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <form.AppField
                       name="email"
                       children={(field) => (
-                        <field.Input formBaseProps={{ label: "Email" }} placeholder="email@example.com" />
+                        <field.Input
+                          formBaseProps={{ label: 'Email' }}
+                          placeholder="email@example.com"
+                        />
                       )}
                     />
                     <form.AppField
                       name="phone"
                       children={(field) => (
-                        <field.Input formBaseProps={{ label: "Phone" }} placeholder="+63 959 3493 921" />
+                        <field.Input
+                          formBaseProps={{ label: 'Phone' }}
+                          placeholder="+63 959 3493 921"
+                        />
                       )}
                     />
                   </div>
@@ -234,21 +237,30 @@ function RouteComponent() {
                   <form.AppField
                     name="contactPerson"
                     children={(field) => (
-                      <field.Input formBaseProps={{ label: "Contact Person *" }} placeholder="Primary contact name" />
+                      <field.Input
+                        formBaseProps={{ label: 'Contact Person *' }}
+                        placeholder="Primary contact name"
+                      />
                     )}
                   />
 
                   <form.AppField
                     name="address"
                     children={(field) => (
-                      <field.Textarea formBaseProps={{ label: "Address" }} placeholder="Full address" />
+                      <field.Textarea
+                        formBaseProps={{ label: 'Address' }}
+                        placeholder="Full address"
+                      />
                     )}
                   />
 
                   <form.AppField
                     name="address"
                     children={(field) => (
-                      <field.Textarea formBaseProps={{ label: "Notes" }} placeholder="Additional notes..." />
+                      <field.Textarea
+                        formBaseProps={{ label: 'Notes' }}
+                        placeholder="Additional notes..."
+                      />
                     )}
                   />
 
@@ -259,11 +271,10 @@ function RouteComponent() {
                     )}
                   />
 
-                  <Button
-                    className="w-full"
-                    disabled={submitting}
-                  >
-                    {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  <Button className="w-full" disabled={submitting}>
+                    {submitting && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
                     {editingSupplier ? 'Update Supplier' : 'Create Supplier'}
                   </Button>
                 </form>
@@ -284,7 +295,9 @@ function RouteComponent() {
                   <TableHead>Contact</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Status</TableHead>
-                  {role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
+                  {role === 'admin' && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -323,7 +336,9 @@ function RouteComponent() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={supplier.is_active ? 'default' : 'secondary'}>
+                      <Badge
+                        variant={supplier.is_active ? 'default' : 'secondary'}
+                      >
                         {supplier.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
@@ -346,5 +361,5 @@ function RouteComponent() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

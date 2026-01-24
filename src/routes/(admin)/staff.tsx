@@ -1,21 +1,23 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Navigate, createFileRoute  } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { Settings, Store, Users } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -23,27 +25,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Users, Settings, Store } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from '@tanstack/react-router';
-import { Checkbox } from '@/components/ui/checkbox';
+} from '@/components/ui/table'
+import { Label } from '@/components/ui/label'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface Profile {
-  id: string;
-  user_id: string;
-  full_name: string;
-  email: string;
-  user_roles: { role: string }[];
-  staff_branches: { branch_id: string }[];
+  id: string
+  user_id: string
+  full_name: string
+  email: string
+  user_roles: Array<{ role: string }>
+  staff_branches: Array<{ branch_id: string }>
 }
 
 interface Branch {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 export const Route = createFileRoute('/(admin)/staff')({
@@ -51,48 +50,56 @@ export const Route = createFileRoute('/(admin)/staff')({
 })
 
 function RouteComponent() {
-  const { role } = useAuth();
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [selectedRole, setSelectedRole] = useState<string>('');
-  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
+  const { role } = useAuth()
+  const [profiles, setProfiles] = useState<Array<Profile>>([])
+  const [branches, setBranches] = useState<Array<Branch>>([])
+  const [loading, setLoading] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null)
+  const [selectedRole, setSelectedRole] = useState<string>('')
+  const [selectedBranches, setSelectedBranches] = useState<Array<string>>([])
 
   if (role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />
   }
 
   useEffect(() => {
-    fetchProfiles();
-    fetchBranches();
-  }, []);
+    fetchProfiles()
+    fetchBranches()
+  }, [])
 
   async function fetchProfiles() {
     try {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, user_id, full_name, email')
-        .order('full_name');
+        .order('full_name')
 
-      if (profilesError) throw profilesError;
+      if (profilesError) throw profilesError
 
-      const { data: rolesData } = await supabase.from('user_roles').select('user_id, role');
-      const { data: branchesData } = await supabase.from('staff_branches').select('user_id, branch_id');
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+      const { data: branchesData } = await supabase
+        .from('staff_branches')
+        .select('user_id, branch_id')
 
-      const enrichedProfiles: Profile[] = (profilesData || []).map((p) => ({
+      const enrichedProfiles: Array<Profile> = (profilesData || []).map((p) => ({
         ...p,
-        user_roles: (rolesData || []).filter((r) => r.user_id === p.user_id).map((r) => ({ role: r.role })),
-        staff_branches: (branchesData || []).filter((b) => b.user_id === p.user_id).map((b) => ({ branch_id: b.branch_id })),
-      }));
+        user_roles: (rolesData || [])
+          .filter((r) => r.user_id === p.user_id)
+          .map((r) => ({ role: r.role })),
+        staff_branches: (branchesData || [])
+          .filter((b) => b.user_id === p.user_id)
+          .map((b) => ({ branch_id: b.branch_id })),
+      }))
 
-      setProfiles(enrichedProfiles);
+      setProfiles(enrichedProfiles)
     } catch (error) {
-      console.error('Error fetching profiles:', error);
-      toast.error('Failed to load staff');
+      console.error('Error fetching profiles:', error)
+      toast.error('Failed to load staff')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -101,67 +108,68 @@ function RouteComponent() {
       .from('branches')
       .select('id, name')
       .eq('is_active', true)
-      .order('name');
-    setBranches(data || []);
+      .order('name')
+    setBranches(data || [])
   }
 
   const handleEditStaff = (profile: Profile) => {
-    setSelectedProfile(profile);
-    setSelectedRole(profile.user_roles[0]?.role || 'staff');
-    setSelectedBranches(profile.staff_branches.map((sb) => sb.branch_id));
-    setIsDialogOpen(true);
-  };
+    setSelectedProfile(profile)
+    setSelectedRole(profile.user_roles[0]?.role || 'staff')
+    setSelectedBranches(profile.staff_branches.map((sb) => sb.branch_id))
+    setIsDialogOpen(true)
+  }
 
   const handleSave = async () => {
-    if (!selectedProfile) return;
+    if (!selectedProfile) return
 
     try {
       // Update role
-      await supabase
-        .from('user_roles')
-        .upsert({
+      await supabase.from('user_roles').upsert(
+        {
           user_id: selectedProfile.user_id,
           role: selectedRole as any,
-        }, { onConflict: 'user_id,role' });
+        },
+        { onConflict: 'user_id,role' },
+      )
 
       // Update branch assignments - delete existing and insert new
       await supabase
         .from('staff_branches')
         .delete()
-        .eq('user_id', selectedProfile.user_id);
+        .eq('user_id', selectedProfile.user_id)
 
       if (selectedBranches.length > 0 && selectedRole !== 'admin') {
         await supabase.from('staff_branches').insert(
           selectedBranches.map((branchId) => ({
             user_id: selectedProfile.user_id,
             branch_id: branchId,
-          }))
-        );
+          })),
+        )
       }
 
-      toast.success('Staff updated successfully');
-      setIsDialogOpen(false);
-      fetchProfiles();
+      toast.success('Staff updated successfully')
+      setIsDialogOpen(false)
+      fetchProfiles()
     } catch (error: any) {
-      console.error('Error updating staff:', error);
-      toast.error(error.message || 'Failed to update staff');
+      console.error('Error updating staff:', error)
+      toast.error(error.message || 'Failed to update staff')
     }
-  };
+  }
 
   const toggleBranch = (branchId: string) => {
     setSelectedBranches((prev) =>
       prev.includes(branchId)
         ? prev.filter((id) => id !== branchId)
-        : [...prev, branchId]
-    );
-  };
+        : [...prev, branchId],
+    )
+  }
 
-  const getBranchNames = (branchIds: string[]) => {
+  const getBranchNames = (branchIds: Array<string>) => {
     return branchIds
       .map((id) => branches.find((b) => b.id === id)?.name)
       .filter(Boolean)
-      .join(', ');
-  };
+      .join(', ')
+  }
 
   return (
     <>
@@ -196,12 +204,16 @@ function RouteComponent() {
               <TableBody>
                 {profiles.map((profile) => (
                   <TableRow key={profile.id}>
-                    <TableCell className="font-medium">{profile.full_name}</TableCell>
+                    <TableCell className="font-medium">
+                      {profile.full_name}
+                    </TableCell>
                     <TableCell>{profile.email}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
-                          profile.user_roles[0]?.role === 'admin' ? 'default' : 'secondary'
+                          profile.user_roles[0]?.role === 'admin'
+                            ? 'default'
+                            : 'secondary'
                         }
                       >
                         {profile.user_roles[0]?.role || 'staff'}
@@ -209,11 +221,17 @@ function RouteComponent() {
                     </TableCell>
                     <TableCell>
                       {profile.user_roles[0]?.role === 'admin' ? (
-                        <span className="text-muted-foreground">All branches</span>
+                        <span className="text-muted-foreground">
+                          All branches
+                        </span>
                       ) : profile.staff_branches.length === 0 ? (
-                        <span className="text-muted-foreground">None assigned</span>
+                        <span className="text-muted-foreground">
+                          None assigned
+                        </span>
                       ) : (
-                        getBranchNames(profile.staff_branches.map((sb) => sb.branch_id))
+                        getBranchNames(
+                          profile.staff_branches.map((sb) => sb.branch_id),
+                        )
                       )}
                     </TableCell>
                     <TableCell>
@@ -242,7 +260,9 @@ function RouteComponent() {
             <div className="space-y-4">
               <div className="p-3 bg-muted rounded-lg">
                 <p className="font-medium">{selectedProfile.full_name}</p>
-                <p className="text-sm text-muted-foreground">{selectedProfile.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProfile.email}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -285,7 +305,10 @@ function RouteComponent() {
               )}
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleSave}>Save Changes</Button>
@@ -295,6 +318,5 @@ function RouteComponent() {
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }
-

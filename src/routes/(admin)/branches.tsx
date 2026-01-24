@@ -1,19 +1,20 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react';
-import { Navigate } from '@tanstack/react-router'
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
+import { Navigate, createFileRoute  } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import * as z from 'zod'
+import { toast } from 'sonner'
+import { Pencil, Plus, Store } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
+} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -21,33 +22,29 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Switch } from '@/components/ui/switch';
-import { useAppForm } from '@/components/form/hooks';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Plus, Pencil, Store } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+} from '@/components/ui/table'
+import { Switch } from '@/components/ui/switch'
+import { useAppForm } from '@/components/form/hooks'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Branch {
-  id: string;
-  name: string;
-  address: string | null;
-  phone: string | null;
-  is_active: boolean;
-  created_at: string;
+  id: string
+  name: string
+  address: string | null
+  phone: string | null
+  is_active: boolean
+  created_at: string
 }
 
 const formSchema = z.object({
   name: z.string().min(1, 'Enter branch name'),
   address: z.string().min(1, "Address can't be empty"),
   phone: z.string().optional(),
-  is_active: z.boolean()
-});
+  is_active: z.boolean(),
+})
 
-
-type FormData = z.infer<typeof formSchema>;
-
+type FormData = z.infer<typeof formSchema>
 
 export const Route = createFileRoute('/(admin)/branches')({
   component: RouteComponent,
@@ -56,13 +53,13 @@ export const Route = createFileRoute('/(admin)/branches')({
 function RouteComponent() {
   const form = useAppForm({
     defaultValues: {
-      name: "",
-      address: "",
-      phone: "",
-      is_active: true
+      name: '',
+      address: '',
+      phone: '',
+      is_active: true,
     } satisfies FormData as FormData,
     validators: {
-      onSubmit: formSchema
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
       try {
@@ -76,77 +73,75 @@ function RouteComponent() {
               phone: value.phone || null,
               is_active: value.is_active,
             })
-            .eq('id', editingBranch.id);
+            .eq('id', editingBranch.id)
 
-          if (error) throw error;
-          toast.success('Branch updated successfully');
+          if (error) throw error
+          toast.success('Branch updated successfully')
         } else {
           const { error } = await supabase.from('branches').insert({
             name: value.name,
             address: value.address || null,
             phone: value.phone || null,
             is_active: value.is_active,
-          });
+          })
 
-          if (error) throw error;
-          toast.success('Branch created successfully');
+          if (error) throw error
+          toast.success('Branch created successfully')
         }
 
-        setIsDialogOpen(false);
-        fetchBranches();
+        setIsDialogOpen(false)
+        fetchBranches()
       } catch (error: any) {
-        console.error('Error saving branch:', error);
-        toast.error(error.message || 'Failed to save branch');
+        console.error('Error saving branch:', error)
+        toast.error(error.message || 'Failed to save branch')
       }
-
-    }
+    },
   })
-  const { role } = useAuth();
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  const { role } = useAuth()
+  const [branches, setBranches] = useState<Array<Branch>>([])
+  const [loading, setLoading] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null)
 
   // Only admins can access this page
   if (role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />
   }
 
-
   useEffect(() => {
-    fetchBranches();
-  }, []);
+    fetchBranches()
+  }, [])
 
   async function fetchBranches() {
     try {
       const { data, error } = await supabase
         .from('branches')
         .select('*')
-        .order('name');
+        .order('name')
 
-      if (error) throw error;
-      setBranches(data || []);
+      if (error) throw error
+      setBranches(data || [])
     } catch (error) {
-      console.error('Error fetching branches:', error);
-      toast.error('Failed to load branches');
+      console.error('Error fetching branches:', error)
+      toast.error('Failed to load branches')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   const handleOpenDialog = (branch?: Branch) => {
     if (branch) {
-      setEditingBranch(branch);
+      setEditingBranch(branch)
       form.setFieldValue('name', branch.name)
       form.setFieldValue('address', branch.address || '')
       form.setFieldValue('phone', branch.phone || '')
       form.setFieldValue('is_active', branch.is_active)
     } else {
-      setEditingBranch(null);
-      form.reset();
+      setEditingBranch(null)
+      form.reset()
     }
-    setIsDialogOpen(true);
-  };
+    setIsDialogOpen(true)
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,28 +158,29 @@ function RouteComponent() {
               {editingBranch ? 'Edit Branch' : 'Add New Branch'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit();
-          }}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              form.handleSubmit()
+            }}
             className="space-y-4"
           >
             <form.AppField
               name="name"
               children={(field) => (
-                <field.Input formBaseProps={{ label: "Branch Name" }} />
+                <field.Input formBaseProps={{ label: 'Branch Name' }} />
               )}
             />
             <form.AppField
               name="address"
               children={(field) => (
-                <field.Input formBaseProps={{ label: "Address" }} />
+                <field.Input formBaseProps={{ label: 'Address' }} />
               )}
             />
             <form.AppField
               name="phone"
               children={(field) => (
-                <field.Input formBaseProps={{ label: "Phone" }} />
+                <field.Input formBaseProps={{ label: 'Phone' }} />
               )}
             />
             <form.AppField
@@ -244,7 +240,9 @@ function RouteComponent() {
                     <TableCell>{branch.address || '-'}</TableCell>
                     <TableCell>{branch.phone || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant={branch.is_active ? 'default' : 'secondary'}>
+                      <Badge
+                        variant={branch.is_active ? 'default' : 'secondary'}
+                      >
                         {branch.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
@@ -265,6 +263,5 @@ function RouteComponent() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
-
