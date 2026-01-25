@@ -16,6 +16,10 @@ export const formSchema = z.object({
   colors: z.array(z.string()),
 })
 
+export const IDSchema = z.object({
+  id: z.string()
+})
+
 export const ProductInputSchema = z.object({
   limit: z.number().min(1).max(100).default(50),
   categoryId: z.string().optional(),

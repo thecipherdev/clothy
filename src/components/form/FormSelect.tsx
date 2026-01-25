@@ -8,14 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Category } from '@/features/products/types';
 
-type Items = {
-  id: string
-  name: string
-}
 
 type Props = {
-  items: Array<Items>
+  items: Array<Category>
   formBaseProps: FormBaseProps
   placeholder: string
 }

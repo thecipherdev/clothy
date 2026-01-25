@@ -1,7 +1,54 @@
 import { createServerFn } from '@tanstack/react-start'
 import { setResponseStatus } from '@tanstack/react-start/server'
-import { ProductInputSchema } from '../types/schema'
+import { ProductInputSchema, IDSchema } from '../types/schema'
 import { supabase } from '@/integrations/supabase/client'
+
+export const getVariantsData = createServerFn({ method: 'GET' })
+  .inputValidator(IDSchema)
+  .handler(async ({ data }) => {
+    const { data: variantData, error: variantError } = await supabase
+      .from('product_variants')
+      .select(
+        `
+          id,
+          size,
+          color,
+          inventory(
+            quantity,
+            branch:branches(name)
+          )
+        `,
+      )
+      .eq('product_id', data.id)
+      .order('size')
+      .order('color')
+
+    if (variantError) {
+      console.log('Database Error:', variantError);
+      setResponseStatus(500)
+      throw new Error('Failed to fetch products')
+    }
+    return { data: variantData }
+  })
+
+export const getProductData = createServerFn({ method: 'GET' })
+  .inputValidator(IDSchema)
+  .handler(async ({ data }) => {
+    const { data: productData, error: productError } = await supabase
+      .from('products')
+      .select('*, categories(id, name)')
+      .eq('id', data.id)
+      .maybeSingle()
+
+    if (productError) {
+      console.log('Database Error:', productError);
+      setResponseStatus(500)
+      throw new Error('Failed to fetch products')
+    }
+
+    return { data: productData }
+
+  })
 
 export const getProductsData = createServerFn({ method: 'GET' })
   .inputValidator(ProductInputSchema)

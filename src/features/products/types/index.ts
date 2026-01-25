@@ -14,3 +14,14 @@ export interface Product {
   created_at: string
   categories: Category | null
 }
+
+export interface ProductVariant {
+  id: string
+  size: string
+  color: string
+  inventory: Array<{
+    quantity: number
+    branch: { name: string }
+  }>
+}
+

@@ -1,23 +1,22 @@
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
-import { formSchema, UseAppForm } from '@/features/products/types/schema'
 
 import { useAppForm } from '@/components/form/hooks'
 import { Card, CardContent } from '@/components/ui/card'
 
-import { ProductToolbar } from '@/features/products/components/ProductToolbar'
-import { ProductTable } from '@/features/products/components/ProductTable'
+import { ProductToolbar } from '@products/components/ProductToolbar'
+import { ProductTable } from '@products/components/ProductTable'
 
 import {
   useCreateProduct,
   useUpdateProduct,
-} from '@/features/products/model/mutations'
-import { useCategories, useProducts } from '@/features/products/model/queries'
+} from '@products/model/mutations'
+import { useCategories, useProducts } from '@products/model/queries'
 
-import { SearchParamsType } from '@/features/products/types/schema'
-import type { Product } from '@/features/products/types'
-import { useProductContext } from '@/features/products/context/ProductContext';
+import { SearchParamsType, formSchema, UseAppForm } from '@products/types/schema'
+import type { Product } from '@products/types'
+import { useProductContext } from '@products/context/ProductContext';
 
 import { useGlobalContext } from '@/context/GlobalContext'
 
@@ -39,7 +38,7 @@ const Route = getRouteApi("/(app)/products/")
 
 export function ProductPage() {
   const searchParams = Route.useSearch()
-  const navigate = Route.useNavigate()
+  const navigate = useNavigate({ from: '/products/' })
 
   const { editingProduct, setEditingProduct } = useProductContext()
   const { setIsDialogOpen } = useGlobalContext()
@@ -80,8 +79,6 @@ export function ProductPage() {
   const handleOpenDialog = async (product?: Product) => {
     if (product) {
       setEditingProduct(product.id)
-
-      console.log('editing', product)
       // Fetch existing variants
       const { data: variants } = await supabase
         .from('product_variants')

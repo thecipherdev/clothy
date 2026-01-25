@@ -3,6 +3,8 @@ import { FieldGroup } from '@/components/ui/field';
 import { Button } from "@/components/ui/button";
 import { useProductContext } from "../context/ProductContext";
 import { useGlobalContext } from "@/context/GlobalContext";
+import { useCategories } from "../model/queries";
+import { Category } from "../types";
 
 type Props = {
   form: UseAppForm;
@@ -56,7 +58,8 @@ export function AddProductForm({
   colors,
   form,
 }: Props) {
-  const { categories, editingProduct } = useProductContext()
+  const { editingProduct } = useProductContext()
+  const { data: categories } = useCategories()
   const { setIsDialogOpen } = useGlobalContext()
 
   return (
@@ -88,7 +91,7 @@ export function AddProductForm({
         <form.AppField
           name="category_id"
           children={(field) => (
-            <field.Select formBaseProps={{ label: "Category" }} items={categories} placeholder="Select Categories" />
+            <field.Select formBaseProps={{ label: "Category" }} items={categories?.data as Category[]} placeholder="Select Categories" />
           )}
         />
         <form.AppField

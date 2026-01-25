@@ -89,6 +89,7 @@ export function ProductTable({
                 {'admin' === 'admin' && (
                   <Button
                     variant="ghost"
+                    className="cursor-pointer"
                     size="icon"
                     onClick={() => handleOpenDialog(product)}
                   >
