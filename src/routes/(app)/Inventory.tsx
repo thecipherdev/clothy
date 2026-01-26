@@ -1,18 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
-import * as z from 'zod'
 import { Inventory } from '@/components/pages/Inventory'
+import { SearchParams } from '@/features/inventory/types/schema'
+import { InventoryProvider } from '@/features/inventory/context/InventoryContext'
 
-const querySearchSchema = z.object({
-  branchId: z.string().optional(),
-})
 
 export const Route = createFileRoute('/(app)/inventory')({
-  validateSearch: querySearchSchema,
+  validateSearch: SearchParams,
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return (<Inventory />
-
+  return (
+    <InventoryProvider>
+      <Inventory />
+    </InventoryProvider>
   )
 }

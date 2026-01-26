@@ -5,17 +5,16 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { SearchParamsType } from '../types/schema'
+import { useProductContext } from '../context/ProductContext'
 
 export function TableSelect({
   category_id,
-  updateFilter,
   items
 }: {
-  updateFilter: (name: keyof SearchParamsType, value: string) => void
   category_id: string
   items: { name: string, id: string }[] | null | undefined
 }) {
+  const { updateFilter } = useProductContext()
   return (
 
     <Select

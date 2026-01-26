@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { CardHeader, CardTitle } from "@/components/ui/card"
 import { UseAppForm } from "../types/schema"
 import { ProductDialog } from "./ProductDialog"
+import { useProductContext } from "../context/ProductContext"
 
 type Item = {
   id: string;
@@ -14,7 +15,6 @@ type Item = {
 type ProductToolbarProps = {
   searchParams: any;
   categories: Item[] | null | undefined;
-  updateFilter: (name: any, value: string) => void;
   handleOpenDialog: () => void;
   sizes: string[];
   colors: string[];
@@ -24,12 +24,13 @@ type ProductToolbarProps = {
 export function ProductToolbar({
   searchParams,
   categories,
-  updateFilter,
   handleOpenDialog,
   sizes,
   colors,
   form
 }: ProductToolbarProps) {
+  const { updateFilter } = useProductContext()
+
   return (
     <CardHeader>
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -50,7 +51,6 @@ export function ProductToolbar({
           <TableSelect
             category_id={searchParams.category_id ?? 'all'}
             items={categories}
-            updateFilter={updateFilter}
           />
           <ProductDialog
             handleOpenDialog={handleOpenDialog}

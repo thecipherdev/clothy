@@ -1,6 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
-import * as z from 'zod'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import {
   AlertTriangle,
@@ -38,11 +37,7 @@ import {
 } from '@/components/ui/table'
 import { supabase } from '@/integrations/supabase/client'
 import { useGetBranches, useGetInventories } from '@/features/inventory/model/queries'
-
-interface Branch {
-  id: string
-  name: string
-}
+import { InventoryToolbar } from '@/features/inventory/components/InventoryToolbar'
 
 interface InventoryItem {
   id: string
@@ -56,15 +51,13 @@ interface InventoryItem {
     product: { id: string; name: string; sku: string }
   }
 }
+const Route = getRouteApi('/(app)/inventory')
 
 export function Inventory() {
-  // const { user } = useAuth();
+  const searchParams = Route.useSearch()
+
   const { data: branches } = useGetBranches()
   const { data: inventory, isLoading: isLoadingInventory } = useGetInventories()
-  const navigate = useNavigate()
-  const [selectedBranch, setSelectedBranch] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showLowStock, setShowLowStock] = useState(false)
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false)
   const [selectedInventory, setSelectedInventory] =
     useState<InventoryItem | null>(null)
@@ -134,75 +127,26 @@ export function Inventory() {
   }
 
   const filteredInventory = inventory?.data.filter((item) => {
-    const matchesSearch =
+    const searchTerm = searchParams.product?.toLowerCase();
+    const matchesSearch = !searchTerm ||
       item.variant?.product?.name
         .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
+        .includes(searchTerm) ||
       item.variant?.product?.sku
         .toLowerCase()
-        .includes(searchQuery.toLowerCase())
+        .includes(searchTerm)
     const matchesBranch =
-      selectedBranch === 'all' || item.branch?.id === selectedBranch
+      !searchParams.branchId ||
+      searchParams.branchId === 'all' || item.branch?.id === searchParams.branchId
     const matchesLowStock =
-      !showLowStock || item.quantity < item.low_stock_threshold
+      !searchParams.showLowStock || item.quantity < item.low_stock_threshold
     return matchesSearch && matchesBranch && matchesLowStock
   })
 
   return (
     <>
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Boxes className="h-4 w-4" />
-              Stock Levels
-            </CardTitle>
-            <div className="flex flex-wrap gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 w-[180px]"
-                />
-              </div>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="All branches" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
-                  {branches?.data.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant={showLowStock ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setShowLowStock(!showLowStock)}
-              >
-                <AlertTriangle className="h-4 w-4 mr-1" />
-                Low Stock
-              </Button>
-              <Button
-                size="sm"
-                onClick={() =>
-                  navigate({
-                    to: '/purchase-orders/$orderId',
-                    params: { orderId: 'new' },
-                  })
-                }
-              >
-                <PackagePlus className="h-4 w-4 mr-1" />
-                Add Stock
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+        <InventoryToolbar branches={branches?.data} searchParams={searchParams} />
         <CardContent>
           {isLoadingInventory ? (
             <div className="flex items-center justify-center h-32">

@@ -1,12 +1,10 @@
-import { Navigate, createFileRoute  } from '@tanstack/react-router'
+import { Navigate, createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { Pencil, Plus, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
   Dialog,
   DialogContent,
@@ -23,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Switch } from '@/components/ui/switch'
 import { useAppForm } from '@/components/form/hooks'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'

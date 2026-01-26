@@ -1,4 +1,4 @@
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
 
@@ -14,7 +14,7 @@ import {
 } from '@products/model/mutations'
 import { useCategories, useProducts } from '@products/model/queries'
 
-import { SearchParamsType, formSchema, UseAppForm } from '@products/types/schema'
+import { formSchema, UseAppForm } from '@products/types/schema'
 import type { Product } from '@products/types'
 import { useProductContext } from '@products/context/ProductContext';
 
@@ -38,7 +38,6 @@ const Route = getRouteApi("/(app)/products/")
 
 export function ProductPage() {
   const searchParams = Route.useSearch()
-  const navigate = useNavigate({ from: '/products/' })
 
   const { editingProduct, setEditingProduct } = useProductContext()
   const { setIsDialogOpen } = useGlobalContext()
@@ -114,22 +113,12 @@ export function ProductPage() {
     return matchesSearch && matchesCategory
   })
 
-  const updateFilter = (name: keyof SearchParamsType, value: unknown) => {
-    return navigate({
-      search: (prev) => ({
-        ...prev,
-        [name]: (!value || value === '' || value === 'all') ? undefined : value
-      })
-    })
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <Card>
         <ProductToolbar
           searchParams={searchParams}
           categories={categories?.data}
-          updateFilter={updateFilter}
           handleOpenDialog={handleOpenDialog}
           sizes={SIZES}
           colors={COLORS}
