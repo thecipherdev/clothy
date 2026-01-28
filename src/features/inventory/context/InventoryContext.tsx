@@ -1,18 +1,23 @@
 import { getRouteApi, NavigateOptions, useNavigate } from '@tanstack/react-router';
-import { useContext, createContext, useMemo } from 'react';
+import { useContext, createContext, useMemo, SetStateAction, Dispatch, useState } from 'react';
 
 import { SearchParamsType } from '../types/schema';
+import { InventoryItem } from '../types';
 
 interface InventoryContextTypes {
   updateFilter: (name: keyof SearchParamsType, value: unknown) => void
   searchParams: SearchParamsType;
-  navigate: (args: NavigateOptions) => void
+  navigate: (args: NavigateOptions) => void;
+  selectedInventory: InventoryItem | null;
+  setSelectedInventory: Dispatch<SetStateAction<InventoryItem | null>>
 }
 
 const initialValue = {
   updateFilter: () => { },
   searchParams: {},
-  navigate: () => ""
+  navigate: () => "",
+  selectedInventory: null,
+  setSelectedInventory: () => { }
 }
 
 const Route = getRouteApi('/(app)/inventory')
@@ -27,6 +32,7 @@ export const useInvetoryContext = () => {
 }
 
 export const InventoryProvider = ({ children }: { children: React.ReactNode }) => {
+  const [selectedInventory, setSelectedInventory] = useState<InventoryItem | null>(null)
   const searchParams = Route.useSearch();
   const navigate = useNavigate({ from: '/inventory' });
 
@@ -44,7 +50,15 @@ export const InventoryProvider = ({ children }: { children: React.ReactNode }) =
     updateFilter,
     searchParams,
     navigate,
-  }), [updateFilter, searchParams, navigate])
+    selectedInventory,
+    setSelectedInventory,
+  }), [
+    updateFilter,
+    searchParams,
+    navigate,
+    selectedInventory,
+    setSelectedInventory
+  ])
 
   return (
     <InventoryContext.Provider value={value}>

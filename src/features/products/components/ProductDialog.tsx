@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useProductContext } from '../context/ProductContext';
-import { UseAppForm } from '../types/schema';
+import { UseAppForm } from '@/types/form';
 
 interface ProductDialogProps {
   handleOpenDialog: () => void;

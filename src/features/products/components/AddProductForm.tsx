@@ -1,10 +1,10 @@
-import { UseAppForm } from "../types/schema";
 import { FieldGroup } from '@/components/ui/field';
 import { Button } from "@/components/ui/button";
 import { useProductContext } from "../context/ProductContext";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useCategories } from "../model/queries";
 import { Category } from "../types";
+import { UseAppForm } from '@/types/form';
 
 type Props = {
   form: UseAppForm;

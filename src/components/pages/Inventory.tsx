@@ -24,32 +24,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useAppForm } from '@/components/form/hooks'
+import { UseAppForm } from '@/types/form';
+
 import { useGetBranches, useGetInventories } from '@/features/inventory/model/queries'
 import { InventoryToolbar } from '@/features/inventory/components/InventoryToolbar'
 import { useStockAdjustment } from '@/features/inventory/model/mutations'
 import { stockMovementFormSchema } from '@/features/inventory/types/schema'
-import { useAppForm } from '@/components/form/hooks'
 
+import { InventoryItem } from '@/features/inventory/types';
+import { useInvetoryContext } from '@/features/inventory/context/InventoryContext';
+import { UpdateStockForm } from '@/features/inventory/components/UpdateStockForm';
+import { useGlobalContext } from '@/context/GlobalContext';
 
 type FormData = z.infer<typeof stockMovementFormSchema>
 
-
-interface InventoryItem {
-  id: string
-  quantity: number
-  low_stock_threshold: number
-  branch: { id: string; name: string }
-  variant: {
-    id: string
-    size: string
-    color: string
-    product: { id: string; name: string; sku: string }
-  }
-}
 const Route = getRouteApi('/(app)/inventory')
 
 export function Inventory() {
   const [adjustmentType, setAdjustmentType] = useState<'in' | 'out'>('in')
+  const { selectedInventory, setSelectedInventory } = useInvetoryContext()
+  const { isDialogOpen, setIsDialogOpen } = useGlobalContext()
 
   const searchParams = Route.useSearch()
   const { data: branches } = useGetBranches()
@@ -84,7 +79,6 @@ export function Inventory() {
             ? selectedInventory.quantity + quantity
             : selectedInventory.quantity - quantity
 
-
         updateStockAdjustment.mutate({
           new_quantity: newQuantity,
           quantity: quantity,
@@ -92,9 +86,8 @@ export function Inventory() {
           inventory_id: selectedInventory.id,
           reason: value.reason || null,
           performed_by: '2214933b-7c33-480e-9177-5b53a1e8d2d0'
-
         })
-        setIsAdjustDialogOpen(false)
+        setIsDialogOpen(false)
       } catch (error: any) {
         console.error('Error adjusting stock:', error)
         toast.error(error.message || 'Failed to adjust stock')
@@ -104,14 +97,10 @@ export function Inventory() {
 
   })
 
-  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false)
-  const [selectedInventory, setSelectedInventory] =
-    useState<InventoryItem | null>(null)
-
   const handleAdjustStock = (item: InventoryItem, type: 'in' | 'out') => {
     setSelectedInventory(item)
     setAdjustmentType(type)
-    setIsAdjustDialogOpen(true)
+    setIsDialogOpen(true)
   }
 
   const filteredInventory = inventory?.data.filter((item) => {
@@ -218,7 +207,7 @@ export function Inventory() {
         </CardContent>
       </Card>
 
-      <Dialog open={isAdjustDialogOpen} onOpenChange={setIsAdjustDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -226,74 +215,11 @@ export function Inventory() {
             </DialogTitle>
           </DialogHeader>
           {selectedInventory && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                form.handleSubmit();
-              }}
-              className="space-y-4"
-            >
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="font-medium">
-                  {selectedInventory.variant?.product?.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedInventory.variant?.size} /{' '}
-                  {selectedInventory.variant?.color} •{' '}
-                  {selectedInventory.branch?.name}
-                </p>
-                <p className="text-sm mt-1">
-                  Current stock:{' '}
-                  <span className="font-medium">
-                    {selectedInventory.quantity}
-                  </span>
-                </p>
-              </div>
+            <UpdateStockForm
+              form={form as unknown as UseAppForm}
+              adjustmentType={adjustmentType}
 
-              <form.AppField
-                name="quantity"
-                children={(field) => (
-                  <field.Input
-                    formBaseProps={{ label: "Quantity" }}
-                    id="quantity"
-                    value={field.state.value}
-                    type="number"
-                    min="1"
-                    max={
-                      adjustmentType === 'out'
-                        ? selectedInventory.quantity
-                        : undefined
-                    }
-                  />
-                )}
-              />
-              <form.AppField
-                name="reason"
-                children={(field) => (
-                  <field.Input
-                    formBaseProps={{ label: "Reason (optional)" }}
-                    id="reason"
-                    placeholder={
-                      adjustmentType === 'in'
-                        ? 'e.g., New shipment, Return'
-                        : 'e.g., Sold, Damaged, Lost'
-                    }
-                  />
-                )}
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsAdjustDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {adjustmentType === 'in' ? 'Add Stock' : 'Remove Stock'}
-                </Button>
-              </div>
-            </form>
+            />
           )}
         </DialogContent>
       </Dialog>

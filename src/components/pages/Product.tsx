@@ -14,7 +14,8 @@ import {
 } from '@products/model/mutations'
 import { useCategories, useProducts } from '@products/model/queries'
 
-import { formSchema, UseAppForm } from '@products/types/schema'
+import { formSchema } from '@products/types/schema'
+import { UseAppForm } from '@/types/form'
 import type { Product } from '@products/types'
 import { useProductContext } from '@products/context/ProductContext';
 

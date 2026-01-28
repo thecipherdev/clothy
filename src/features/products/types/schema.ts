@@ -1,8 +1,6 @@
 import { z } from 'zod'
-import { useAppForm } from '@/components/form/hooks'
 
 export type ProductFormData = z.infer<typeof formSchema>
-export type UseAppForm = ReturnType<typeof useAppForm>
 
 export type SearchParamsType = z.infer<typeof SearchParams>
 

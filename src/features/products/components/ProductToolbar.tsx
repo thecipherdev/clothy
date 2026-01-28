@@ -3,7 +3,7 @@ import { Search, ShoppingBag } from "lucide-react"
 import { TableSelect } from "./TableSelect"
 import { Input } from "@/components/ui/input"
 import { CardHeader, CardTitle } from "@/components/ui/card"
-import { UseAppForm } from "../types/schema"
+import { UseAppForm } from "@/types/form"
 import { ProductDialog } from "./ProductDialog"
 import { useProductContext } from "../context/ProductContext"
 
