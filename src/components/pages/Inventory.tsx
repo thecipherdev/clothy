@@ -1,5 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
+import * as z from 'zod';
 import { toast } from 'sonner'
 import {
   Boxes,
@@ -8,8 +9,6 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
@@ -25,9 +24,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { supabase } from '@/integrations/supabase/client'
 import { useGetBranches, useGetInventories } from '@/features/inventory/model/queries'
 import { InventoryToolbar } from '@/features/inventory/components/InventoryToolbar'
+import { useStockAdjustment } from '@/features/inventory/model/mutations'
+import { stockMovementFormSchema } from '@/features/inventory/types/schema'
+import { useAppForm } from '@/components/form/hooks'
+
+
+type FormData = z.infer<typeof stockMovementFormSchema>
+
 
 interface InventoryItem {
   id: string
@@ -44,76 +49,69 @@ interface InventoryItem {
 const Route = getRouteApi('/(app)/inventory')
 
 export function Inventory() {
-  const searchParams = Route.useSearch()
+  const [adjustmentType, setAdjustmentType] = useState<'in' | 'out'>('in')
 
+  const searchParams = Route.useSearch()
   const { data: branches } = useGetBranches()
   const { data: inventory, isLoading: isLoadingInventory } = useGetInventories()
+  const updateStockAdjustment = useStockAdjustment(adjustmentType)
+
+  const form = useAppForm({
+    defaultValues: {
+      quantity: "",
+      reason: "",
+    } satisfies FormData as FormData,
+    validators: {
+      onSubmit: stockMovementFormSchema
+    },
+    onSubmit: async ({ value }) => {
+      if (!selectedInventory || !value.quantity) return
+
+      const quantity = parseInt(value.quantity)
+      if (quantity <= 0) {
+        toast.error('Quantity must be greater than 0')
+        return
+      }
+
+      if (adjustmentType === 'out' && quantity > selectedInventory.quantity) {
+        toast.error('Cannot remove more than available stock')
+        return
+      }
+
+      try {
+        const newQuantity =
+          adjustmentType === 'in'
+            ? selectedInventory.quantity + quantity
+            : selectedInventory.quantity - quantity
+
+
+        updateStockAdjustment.mutate({
+          new_quantity: newQuantity,
+          quantity: quantity,
+          momvement_type: adjustmentType,
+          inventory_id: selectedInventory.id,
+          reason: value.reason || null,
+          performed_by: '2214933b-7c33-480e-9177-5b53a1e8d2d0'
+
+        })
+        setIsAdjustDialogOpen(false)
+      } catch (error: any) {
+        console.error('Error adjusting stock:', error)
+        toast.error(error.message || 'Failed to adjust stock')
+      }
+
+    }
+
+  })
+
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false)
   const [selectedInventory, setSelectedInventory] =
     useState<InventoryItem | null>(null)
-  const [adjustmentType, setAdjustmentType] = useState<'in' | 'out'>('in')
-  const [adjustmentQuantity, setAdjustmentQuantity] = useState('')
-  const [adjustmentReason, setAdjustmentReason] = useState('')
 
   const handleAdjustStock = (item: InventoryItem, type: 'in' | 'out') => {
     setSelectedInventory(item)
     setAdjustmentType(type)
-    setAdjustmentQuantity('')
-    setAdjustmentReason('')
     setIsAdjustDialogOpen(true)
-  }
-
-  const submitAdjustment = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!selectedInventory || !adjustmentQuantity) return
-
-    const quantity = parseInt(adjustmentQuantity)
-    if (quantity <= 0) {
-      toast.error('Quantity must be greater than 0')
-      return
-    }
-
-    if (adjustmentType === 'out' && quantity > selectedInventory.quantity) {
-      toast.error('Cannot remove more than available stock')
-      return
-    }
-
-    try {
-      const newQuantity =
-        adjustmentType === 'in'
-          ? selectedInventory.quantity + quantity
-          : selectedInventory.quantity - quantity
-
-      // Update inventory
-      const { error: updateError } = await supabase
-        .from('inventory')
-        .update({ quantity: newQuantity })
-        .eq('id', selectedInventory.id)
-
-      if (updateError) throw updateError
-
-      // Record movement
-      const { error: movementError } = await supabase
-        .from('stock_movements')
-        .insert({
-          inventory_id: selectedInventory.id,
-          movement_type: adjustmentType,
-          quantity: quantity,
-          reason: adjustmentReason || null,
-          performed_by: '2214933b-7c33-480e-9177-5b53a1e8d2d0',
-        })
-
-      if (movementError) throw movementError
-
-      toast.success(
-        `Stock ${adjustmentType === 'in' ? 'added' : 'removed'} successfully`,
-      )
-      setIsAdjustDialogOpen(false)
-    } catch (error: any) {
-      console.error('Error adjusting stock:', error)
-      toast.error(error.message || 'Failed to adjust stock')
-    }
   }
 
   const filteredInventory = inventory?.data.filter((item) => {
@@ -228,7 +226,13 @@ export function Inventory() {
             </DialogTitle>
           </DialogHeader>
           {selectedInventory && (
-            <form onSubmit={submitAdjustment} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
+              className="space-y-4"
+            >
               <div className="p-3 bg-muted rounded-lg">
                 <p className="font-medium">
                   {selectedInventory.variant?.product?.name}
@@ -245,35 +249,38 @@ export function Inventory() {
                   </span>
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  max={
-                    adjustmentType === 'out'
-                      ? selectedInventory.quantity
-                      : undefined
-                  }
-                  value={adjustmentQuantity}
-                  onChange={(e) => setAdjustmentQuantity(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reason">Reason (optional)</Label>
-                <Input
-                  id="reason"
-                  value={adjustmentReason}
-                  onChange={(e) => setAdjustmentReason(e.target.value)}
-                  placeholder={
-                    adjustmentType === 'in'
-                      ? 'e.g., New shipment, Return'
-                      : 'e.g., Sold, Damaged, Lost'
-                  }
-                />
-              </div>
+
+              <form.AppField
+                name="quantity"
+                children={(field) => (
+                  <field.Input
+                    formBaseProps={{ label: "Quantity" }}
+                    id="quantity"
+                    value={field.state.value}
+                    type="number"
+                    min="1"
+                    max={
+                      adjustmentType === 'out'
+                        ? selectedInventory.quantity
+                        : undefined
+                    }
+                  />
+                )}
+              />
+              <form.AppField
+                name="reason"
+                children={(field) => (
+                  <field.Input
+                    formBaseProps={{ label: "Reason (optional)" }}
+                    id="reason"
+                    placeholder={
+                      adjustmentType === 'in'
+                        ? 'e.g., New shipment, Return'
+                        : 'e.g., Sold, Damaged, Lost'
+                    }
+                  />
+                )}
+              />
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"

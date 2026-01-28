@@ -4,9 +4,8 @@ import { createMovement } from "../api/mutations";
 import { StockMovementFormData } from '../types/schema';
 
 
-export const useRecordMovement = () => {
+export const useStockAdjustment = (adjustmentType: string) => {
   const queryClient = useQueryClient()
-
 
   return useMutation({
     mutationFn: (stock: StockMovementFormData) => (
@@ -15,7 +14,10 @@ export const useRecordMovement = () => {
       })
     ),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['stockMovement'] })
+      await queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      toast.success(
+        `Stock ${adjustmentType === 'in' ? 'added' : 'removed'} successfully`,
+      )
     },
     onError: (error) => {
       console.log(error)
