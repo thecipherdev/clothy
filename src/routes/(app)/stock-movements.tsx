@@ -1,14 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { ArrowLeftRight } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -16,25 +18,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { ArrowLeftRight } from 'lucide-react';
+} from '@/components/ui/table'
+import { supabase } from '@/integrations/supabase/client'
 
 interface StockMovement {
-  id: string;
-  movement_type: string;
-  quantity: number;
-  reason: string | null;
-  created_at: string;
+  id: string
+  movement_type: string
+  quantity: number
+  reason: string | null
+  created_at: string
   inventory: {
-    branch: { name: string };
+    branch: { name: string }
     variant: {
-      size: string;
-      color: string;
-      product: { name: string; sku: string };
-    };
-  };
+      size: string
+      color: string
+      product: { name: string; sku: string }
+    }
+  }
 }
 
 export const Route = createFileRoute('/(app)/stock-movements')({
@@ -42,19 +42,20 @@ export const Route = createFileRoute('/(app)/stock-movements')({
 })
 
 function RouteComponent() {
-  const [movements, setMovements] = useState<StockMovement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState<string>('all');
+  const [movements, setMovements] = useState<Array<StockMovement>>([])
+  const [loading, setLoading] = useState(true)
+  const [filterType, setFilterType] = useState<string>('all')
 
   useEffect(() => {
-    fetchMovements();
-  }, []);
+    fetchMovements()
+  }, [])
 
   async function fetchMovements() {
     try {
       const { data, error } = await supabase
         .from('stock_movements')
-        .select(`
+        .select(
+          `
           id,
           movement_type,
           quantity,
@@ -68,17 +69,18 @@ function RouteComponent() {
               product:products(name, sku)
             )
           )
-        `)
+        `,
+        )
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100)
 
-      if (error) throw error;
-      setMovements(data || []);
+      if (error) throw error
+      setMovements(data || [])
     } catch (error) {
-      console.error('Error fetching movements:', error);
-      toast.error('Failed to load stock movements');
+      console.error('Error fetching movements:', error)
+      toast.error('Failed to load stock movements')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -89,19 +91,21 @@ function RouteComponent() {
       transfer_in: 'Transfer In',
       transfer_out: 'Transfer Out',
       adjustment: 'Adjustment',
-    };
-    return labels[type] || type;
-  };
+    }
+    return labels[type] || type
+  }
 
-  const getMovementBadgeVariant = (type: string): 'default' | 'destructive' | 'secondary' => {
-    if (type === 'in' || type === 'transfer_in') return 'default';
-    if (type === 'out' || type === 'transfer_out') return 'destructive';
-    return 'secondary';
-  };
+  const getMovementBadgeVariant = (
+    type: string,
+  ): 'default' | 'destructive' | 'secondary' => {
+    if (type === 'in' || type === 'transfer_in') return 'default'
+    if (type === 'out' || type === 'transfer_out') return 'destructive'
+    return 'secondary'
+  }
 
   const filteredMovements = movements.filter(
-    (m) => filterType === 'all' || m.movement_type === filterType
-  );
+    (m) => filterType === 'all' || m.movement_type === filterType,
+  )
 
   return (
     <Card>
@@ -171,21 +175,29 @@ function RouteComponent() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Badge variant="outline">{movement.inventory?.variant?.size}</Badge>
-                      <Badge variant="outline">{movement.inventory?.variant?.color}</Badge>
+                      <Badge variant="outline">
+                        {movement.inventory?.variant?.size}
+                      </Badge>
+                      <Badge variant="outline">
+                        {movement.inventory?.variant?.color}
+                      </Badge>
                     </div>
                   </TableCell>
                   <TableCell>{movement.inventory?.branch?.name}</TableCell>
                   <TableCell>
-                    <Badge variant={getMovementBadgeVariant(movement.movement_type)}>
+                    <Badge
+                      variant={getMovementBadgeVariant(movement.movement_type)}
+                    >
                       {getMovementTypeLabel(movement.movement_type)}
                     </Badge>
                   </TableCell>
                   <TableCell
-                    className={`font-medium ${movement.movement_type.includes('in') ? 'text-green-600' : 'text-red-600'
+                    className={`font-medium ${movement.movement_type.includes('in')
+                      ? 'text-green-600'
+                      : 'text-red-600'
                       }`}
                   >
-                    {movement.movement_type.includes('in') ? '+' : '-'}
+                    {movement.movement_type.includes('in') ? '+' : ''}
                     {movement.quantity}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
@@ -198,6 +210,5 @@ function RouteComponent() {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
-

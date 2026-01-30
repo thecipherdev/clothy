@@ -1,17 +1,13 @@
-import { useFieldContext } from "./hooks";
-import { FormBase, FormBaseProps } from './FormBase';
-import { Badge } from '@/components/ui/badge';
+import { useFieldContext } from './hooks'
+import { FormBase } from './FormBase'
+import type { FormBaseProps } from './FormBase';
+import { Badge } from '@/components/ui/badge'
 
-type Props = FormBaseProps & { items: string[], onClick: (i: string) => void }
+type Props = FormBaseProps & { items: Array<string>; handleClick: (i: string) => void }
 
-export function FormBadgeSelect({
-  items,
-  onClick,
-  ...props
-}: Props) {
-  const field = useFieldContext<string>();
-  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-
+export function FormBadgeSelect({ items, handleClick, ...props }: Props) {
+  const field = useFieldContext<string>()
+  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
 
   return (
     <FormBase {...props}>
@@ -22,7 +18,7 @@ export function FormBadgeSelect({
             variant={field.state.value.includes(item) ? 'default' : 'outline'}
             className="cursor-pointer"
             aria-invalid={isInvalid}
-            onClick={() => onClick(item)}
+            onClick={() => handleClick(item)}
           >
             {item}
           </Badge>

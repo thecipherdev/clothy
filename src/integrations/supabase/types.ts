@@ -1,6 +1,3 @@
-Need to install the following packages:
-supabase@2.72.8
-Ok to proceed? (y) 
 export type Json =
   | string
   | number
@@ -526,6 +523,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_product_with_variants: {
+        Args: {
+          p_category_id: string
+          p_description: string
+          p_name: string
+          p_price: number
+          p_sku: string
+          p_variants: Json
+        }
+        Returns: string
+      }
       get_user_branch_ids: { Args: { _user_id: string }; Returns: string[] }
       has_branch_access: {
         Args: { _branch_id: string; _user_id: string }
@@ -538,6 +546,31 @@ export type Database = {
         }
         Returns: boolean
       }
+      inventory_adjustment: {
+        Args: {
+          p_inventory_id: string
+          p_movement_qty: number
+          p_movement_type: string
+          p_new_qty: number
+          p_performed_by: string
+          p_reason: string
+        }
+        Returns: undefined
+      }
+      update_product_with_variants:
+        | { Args: never; Returns: undefined }
+        | {
+            Args: {
+              p_category_id: string
+              p_description: string
+              p_name: string
+              p_price: number
+              p_product_id: string
+              p_sku: string
+              p_variants: Json
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       app_role: "admin" | "staff"

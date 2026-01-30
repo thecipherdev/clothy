@@ -1,5 +1,19 @@
-import { Link, useLocation } from '@tanstack/react-router';
-import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation } from '@tanstack/react-router'
+import {
+  ArrowLeftRight,
+  BarChart3,
+  Boxes,
+  ClipboardList,
+  FolderTree,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  ShoppingBag,
+  Store,
+  Truck,
+  Users,
+} from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 import {
   Sidebar,
   SidebarContent,
@@ -11,22 +25,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import {
-  Package,
-  LayoutDashboard,
-  Store,
-  ShoppingBag,
-  Boxes,
-  ArrowLeftRight,
-  ClipboardList,
-  BarChart3,
-  Users,
-  Truck,
-  LogOut,
-  FolderTree,
-} from 'lucide-react';
+} from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 
 const mainMenuItems = [
   { title: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -36,21 +36,20 @@ const mainMenuItems = [
   { title: 'Purchase Orders', icon: ClipboardList, href: '/purchase-orders' },
   { title: 'Stock Movements', icon: ArrowLeftRight, href: '/stock-movements' },
   { title: 'Reports', icon: BarChart3, href: '/reports' },
-];
+]
 
 const adminMenuItems = [
   { title: 'Branches', icon: Store, href: '/branches' },
   { title: 'Categories', icon: FolderTree, href: '/categories' },
   { title: 'Suppliers', icon: Truck, href: '/suppliers' },
   { title: 'Staff', icon: Users, href: '/staff' },
-];
+]
 
 export function AppSidebar() {
-  const location = useLocation();
-  const { signOut, role, user } = useAuth();
+  const location = useLocation()
+  const { signOut, role, user } = useAuth()
 
-
-  const isActive = (href: string) => location.pathname === href;
+  const isActive = (href: string) => location.pathname === href
 
   return (
     <Sidebar>
@@ -107,7 +106,9 @@ export function AppSidebar() {
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-sm font-medium">{user?.email}</span>
-            <span className="text-xs text-muted-foreground capitalize">{role}</span>
+            <span className="text-xs text-muted-foreground capitalize">
+              {role}
+            </span>
           </div>
           <Button variant="ghost" size="icon" onClick={signOut}>
             <LogOut className="h-4 w-4" />
@@ -115,5 +116,5 @@ export function AppSidebar() {
         </div>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

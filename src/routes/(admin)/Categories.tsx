@@ -1,18 +1,20 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Field, FieldLabel, FieldError } from '@/components/ui/field';
-import { Textarea } from '@/components/ui/textarea';
+import { Navigate, createFileRoute  } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import * as z from 'zod'
+import { toast } from 'sonner'
+import { FolderTree, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -20,13 +22,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { useAppForm } from '@/components/form/hooks';
-import { toast } from 'sonner';
-import { Plus, Pencil, FolderTree, Trash2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from '@tanstack/react-router';
+} from '@/components/ui/table'
+import { supabase } from '@/integrations/supabase/client'
+import { useAppForm } from '@/components/form/hooks'
+import { useAuth } from '@/hooks/useAuth'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,13 +36,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/alert-dialog'
 
 interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  created_at: string;
+  id: string
+  name: string
+  description: string | null
+  created_at: string
 }
 
 const formSchema = z.object({
@@ -51,21 +50,21 @@ const formSchema = z.object({
   description: z.string(),
 })
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.infer<typeof formSchema>
 
 export const Route = createFileRoute('/(admin)/categories')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const { role } = useAuth();
+  const { role } = useAuth()
   const form = useAppForm({
     defaultValues: {
-      name: "",
-      description: ""
+      name: '',
+      description: '',
     } satisfies FormData as FormData,
     validators: {
-      onSubmit: formSchema
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
       try {
@@ -76,82 +75,82 @@ function RouteComponent() {
               name: value.name,
               description: value.description || null,
             })
-            .eq('id', editingCategory.id);
+            .eq('id', editingCategory.id)
 
-          if (error) throw error;
-          toast.success('Category updated successfully');
+          if (error) throw error
+          toast.success('Category updated successfully')
         } else {
           const { error } = await supabase.from('categories').insert({
             name: value.name,
             description: value.description || null,
-          });
+          })
 
-          if (error) throw error;
-          toast.success('Category created successfully');
+          if (error) throw error
+          toast.success('Category created successfully')
         }
 
-        setIsDialogOpen(false);
-        fetchCategories();
+        setIsDialogOpen(false)
+        fetchCategories()
       } catch (error: any) {
-        console.error('Error saving category:', error);
-        toast.error(error.message || 'Failed to save category');
+        console.error('Error saving category:', error)
+        toast.error(error.message || 'Failed to save category')
       }
-    }
-  });
+    },
+  })
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categories, setCategories] = useState<Array<Category>>([])
+  const [loading, setLoading] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
   if (role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />
   }
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    fetchCategories()
+  }, [])
 
   async function fetchCategories() {
     try {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('name');
+        .order('name')
 
-      if (error) throw error;
-      setCategories(data || []);
+      if (error) throw error
+      setCategories(data || [])
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Failed to load categories');
+      console.error('Error fetching categories:', error)
+      toast.error('Failed to load categories')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   const handleOpenDialog = (category?: Category) => {
     if (category) {
-      setEditingCategory(category);
-      form.setFieldValue('name', category.name);
-      form.setFieldValue('description', category.description || '');
+      setEditingCategory(category)
+      form.setFieldValue('name', category.name)
+      form.setFieldValue('description', category.description || '')
     } else {
-      setEditingCategory(null);
-      form.reset();
+      setEditingCategory(null)
+      form.reset()
     }
-    setIsDialogOpen(true);
-  };
+    setIsDialogOpen(true)
+  }
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase.from('categories').delete().eq('id', id);
-      if (error) throw error;
-      toast.success('Category deleted successfully');
-      fetchCategories();
+      const { error } = await supabase.from('categories').delete().eq('id', id)
+      if (error) throw error
+      toast.success('Category deleted successfully')
+      fetchCategories()
     } catch (error: any) {
-      console.error('Error deleting category:', error);
-      toast.error(error.message || 'Failed to delete category');
+      console.error('Error deleting category:', error)
+      toast.error(error.message || 'Failed to delete category')
     }
-  };
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -168,22 +167,23 @@ function RouteComponent() {
               {editingCategory ? 'Edit Category' : 'Add New Category'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              form.handleSubmit()
+            }}
+            className="space-y-4"
+          >
             <form.AppField
               name="name"
               children={(field) => (
-                <field.Input formBaseProps={{ label: "Category Name" }} />
+                <field.Input formBaseProps={{ label: 'Category Name' }} />
               )}
             />
 
             <form.AppField
               name="description"
-              children={(field) => (
-                <field.Textarea label="Description" />
-              )}
+              children={(field) => <field.Textarea label="Description" />}
             />
             <div className="flex justify-end gap-2">
               <Button
@@ -216,7 +216,10 @@ function RouteComponent() {
           ) : categories.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <FolderTree className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No categories yet. Create your first category to organize products.</p>
+              <p>
+                No categories yet. Create your first category to organize
+                products.
+              </p>
             </div>
           ) : (
             <Table>
@@ -230,7 +233,9 @@ function RouteComponent() {
               <TableBody>
                 {categories.map((category) => (
                   <TableRow key={category.id}>
-                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {category.name}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {category.description || '-'}
                     </TableCell>
@@ -251,14 +256,20 @@ function RouteComponent() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Category</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Delete Category
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{category.name}"? Products in this category will be uncategorized.
+                                Are you sure you want to delete "{category.name}
+                                "? Products in this category will be
+                                uncategorized.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(category.id)}>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(category.id)}
+                              >
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -274,5 +285,5 @@ function RouteComponent() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

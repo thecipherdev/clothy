@@ -1,18 +1,25 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LucideIcon } from 'lucide-react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router'
+import type { LucideIcon } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface StatCardProps {
-  title: string;
-  value: number;
-  icon: LucideIcon;
-  href: string;
-  variant?: 'default' | 'warning';
-  subtitle?: string;
+  title: string
+  value: number
+  icon: LucideIcon
+  href: string
+  variant?: 'default' | 'warning'
+  subtitle?: string
 }
 
-export function StatCard({ title, value, icon: Icon, href, variant = 'default', subtitle }: StatCardProps) {
-  const navigate = useNavigate();
+export function StatCard({
+  title,
+  value,
+  icon: Icon,
+  href,
+  variant = 'default',
+  subtitle,
+}: StatCardProps) {
+  const navigate = useNavigate()
 
   return (
     <Card
@@ -21,10 +28,14 @@ export function StatCard({ title, value, icon: Icon, href, variant = 'default', 
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 ${variant === 'warning' ? 'text-destructive' : 'text-muted-foreground'}`} />
+        <Icon
+          className={`h-4 w-4 ${variant === 'warning' ? 'text-destructive' : 'text-muted-foreground'}`}
+        />
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${variant === 'warning' && value > 0 ? 'text-destructive' : ''}`}>
+        <div
+          className={`text-2xl font-bold ${variant === 'warning' && value > 0 ? 'text-destructive' : ''}`}
+        >
           {value}
         </div>
         {subtitle && (
@@ -32,5 +43,5 @@ export function StatCard({ title, value, icon: Icon, href, variant = 'default', 
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

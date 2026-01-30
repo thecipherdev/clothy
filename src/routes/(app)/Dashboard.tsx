@@ -1,30 +1,25 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import {
-  Package,
-  Store,
-  AlertTriangle,
-  ClipboardList
-} from 'lucide-react'
-import { StatCard } from "@/components/dashboard/StatCard";
-import { LowStockWidget } from "@/components/dashboard/LowStockWidget";
-import { RecentMovementsWidget } from "@/components/dashboard/RecentMovementWidget";
-import { PendingOrdersWidget } from "@/components/dashboard/PendingOrdersWidget";
-
+import { createFileRoute } from '@tanstack/react-router'
+import { AlertTriangle, ClipboardList, Package, Store } from 'lucide-react'
+import { useDashboardData } from '@/hooks/useDashboardData'
+import { StatCard } from '@/components/dashboard/StatCard'
+import { LowStockWidget } from '@/components/dashboard/LowStockWidget'
+import { RecentMovementsWidget } from '@/components/dashboard/RecentMovementWidget'
+import { PendingOrdersWidget } from '@/components/dashboard/PendingOrdersWidget'
 
 export const Route = createFileRoute('/(app)/dashboard')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const { stats, lowStockItems, recentMovements, pendingOrders, loading } = useDashboardData();
+  const { stats, lowStockItems, recentMovements, pendingOrders, loading } =
+    useDashboardData()
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -54,7 +49,11 @@ function RouteComponent() {
           value={stats.pendingOrders}
           icon={ClipboardList}
           href="/purchase-orders"
-          subtitle={stats.nextDelivery ? `Next: ${new Date(stats.nextDelivery).toLocaleDateString()}` : undefined}
+          subtitle={
+            stats.nextDelivery
+              ? `Next: ${new Date(stats.nextDelivery).toLocaleDateString()}`
+              : undefined
+          }
         />
       </div>
 

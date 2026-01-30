@@ -1,11 +1,11 @@
-import { useFieldContext } from "./hooks";
-import { FormBase, FormBaseProps } from "./FormBase";
-import { Switch } from "@/components/ui/switch";
-
+import { useFieldContext } from './hooks'
+import { FormBase } from './FormBase'
+import type { FormBaseProps } from './FormBase';
+import { Switch } from '@/components/ui/switch'
 
 export function FormSwitch(props: FormBaseProps) {
-  const field = useFieldContext<boolean>();
-  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+  const field = useFieldContext<boolean>()
+  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
 
   return (
     <FormBase {...props}>

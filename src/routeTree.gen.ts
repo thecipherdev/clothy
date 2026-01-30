@@ -123,8 +123,8 @@ export interface FileRoutesByFullPath {
   '/signup': typeof authSignupRoute
   '/products/$productId': typeof appProductsProductIdRoute
   '/purchase-orders/$orderId': typeof appPurchaseOrdersOrderIdRoute
-  '/products': typeof appProductsIndexRoute
-  '/purchase-orders': typeof appPurchaseOrdersIndexRoute
+  '/products/': typeof appProductsIndexRoute
+  '/purchase-orders/': typeof appPurchaseOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -180,8 +180,8 @@ export interface FileRouteTypes {
     | '/signup'
     | '/products/$productId'
     | '/purchase-orders/$orderId'
-    | '/products'
-    | '/purchase-orders'
+    | '/products/'
+    | '/purchase-orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -328,14 +328,14 @@ declare module '@tanstack/react-router' {
     '/(app)/purchase-orders/': {
       id: '/(app)/purchase-orders/'
       path: '/purchase-orders'
-      fullPath: '/purchase-orders'
+      fullPath: '/purchase-orders/'
       preLoaderRoute: typeof appPurchaseOrdersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(app)/products/': {
       id: '/(app)/products/'
       path: '/products'
-      fullPath: '/products'
+      fullPath: '/products/'
       preLoaderRoute: typeof appProductsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }

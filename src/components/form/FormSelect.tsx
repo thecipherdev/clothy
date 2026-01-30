@@ -1,22 +1,25 @@
-import { useFieldContext } from "./hooks";
-import { FormBase, FormBaseProps } from "./FormBase";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { useFieldContext } from './hooks'
+import { FormBase } from './FormBase'
+import type { FormBaseProps } from './FormBase';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Category } from '@/features/products/types';
 
-type Items = {
-  id: string;
-  name: string;
-}
 
 type Props = {
-  items: Items[];
-  formBaseProps: FormBaseProps;
-  placeholder: string;
+  items: Array<Category>
+  formBaseProps: FormBaseProps
+  placeholder: string
 }
 
-
 export function FormSelect({ formBaseProps, items, placeholder }: Props) {
-  const field = useFieldContext<string>();
-  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+  const field = useFieldContext<string>()
+  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
 
   return (
     <FormBase {...formBaseProps}>

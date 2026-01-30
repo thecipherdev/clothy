@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react'
+import { AlertTriangle, Download } from 'lucide-react'
+import type { Branch, InventoryHealthItem } from '@/hooks/useReportsData'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -9,56 +11,70 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui/table'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Download, AlertTriangle } from 'lucide-react';
-import { InventoryHealthItem, Branch } from '@/hooks/useReportsData';
-import { exportToCSV } from '@/lib/export';
+} from '@/components/ui/select'
+import { exportToCSV } from '@/lib/export'
 
 interface InventoryHealthTabProps {
-  inventoryHealth: InventoryHealthItem[];
-  branches: Branch[];
-  loading: boolean;
+  inventoryHealth: Array<InventoryHealthItem>
+  branches: Array<Branch>
+  loading: boolean
 }
 
-export function InventoryHealthTab({ inventoryHealth, branches, loading }: InventoryHealthTabProps) {
-  const [statusFilter, setStatusFilter] = useState<string>('low');
-  const [branchFilter, setBranchFilter] = useState<string>('all');
+export function InventoryHealthTab({
+  inventoryHealth,
+  branches,
+  loading,
+}: InventoryHealthTabProps) {
+  const [statusFilter, setStatusFilter] = useState<string>('low')
+  const [branchFilter, setBranchFilter] = useState<string>('all')
 
   const filteredItems = inventoryHealth.filter((item) => {
-    const matchesStatus = statusFilter === 'all' ||
-      (statusFilter === 'low' && (item.status === 'low' || item.status === 'critical')) ||
-      item.status === statusFilter;
-    const matchesBranch = branchFilter === 'all' || item.branch_id === branchFilter;
-    return matchesStatus && matchesBranch;
-  });
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'low' &&
+        (item.status === 'low' || item.status === 'critical')) ||
+      item.status === statusFilter
+    const matchesBranch =
+      branchFilter === 'all' || item.branch_id === branchFilter
+    return matchesStatus && matchesBranch
+  })
 
-  const criticalCount = inventoryHealth.filter((i) => i.status === 'critical').length;
-  const lowCount = inventoryHealth.filter((i) => i.status === 'low').length;
+  const criticalCount = inventoryHealth.filter(
+    (i) => i.status === 'critical',
+  ).length
+  const lowCount = inventoryHealth.filter((i) => i.status === 'low').length
 
   const getStatusBadge = (status: 'critical' | 'low' | 'ok') => {
     switch (status) {
       case 'critical':
-        return <Badge variant="destructive">Critical</Badge>;
+        return <Badge variant="destructive">Critical</Badge>
       case 'low':
-        return <Badge variant="secondary" className="bg-warning/20 text-warning-foreground dark:text-warning">Low</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-warning/20 text-warning-foreground dark:text-warning"
+          >
+            Low
+          </Badge>
+        )
       default:
-        return <Badge variant="outline">OK</Badge>;
+        return <Badge variant="outline">OK</Badge>
     }
-  };
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -70,9 +86,15 @@ export function InventoryHealthTab({ inventoryHealth, branches, loading }: Inven
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning" />
               <span className="font-medium">
-                {criticalCount > 0 && <span className="text-destructive">{criticalCount} critical</span>}
+                {criticalCount > 0 && (
+                  <span className="text-destructive">
+                    {criticalCount} critical
+                  </span>
+                )}
                 {criticalCount > 0 && lowCount > 0 && ' and '}
-                {lowCount > 0 && <span className="text-warning">{lowCount} low stock</span>}
+                {lowCount > 0 && (
+                  <span className="text-warning">{lowCount} low stock</span>
+                )}
                 {' items need attention'}
               </span>
             </div>
@@ -111,15 +133,20 @@ export function InventoryHealthTab({ inventoryHealth, branches, loading }: Inven
             <Button
               variant="outline"
               size="sm"
-              onClick={() => exportToCSV(filteredItems.map(item => ({
-                Product: item.product_name,
-                Variant: item.variant_label,
-                SKU: item.sku,
-                Branch: item.branch_name,
-                'Current Stock': item.current_stock,
-                'Reorder Threshold': item.reorder_threshold,
-                Status: item.status.toUpperCase(),
-              })), 'inventory-health')}
+              onClick={() =>
+                exportToCSV(
+                  filteredItems.map((item) => ({
+                    Product: item.product_name,
+                    Variant: item.variant_label,
+                    SKU: item.sku,
+                    Branch: item.branch_name,
+                    'Current Stock': item.current_stock,
+                    'Reorder Threshold': item.reorder_threshold,
+                    Status: item.status.toUpperCase(),
+                  })),
+                  'inventory-health',
+                )
+              }
             >
               <Download className="h-4 w-4 mr-1" />
               Export
@@ -129,7 +156,9 @@ export function InventoryHealthTab({ inventoryHealth, branches, loading }: Inven
         <CardContent>
           {filteredItems.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {statusFilter === 'low' ? 'No low stock items found' : 'No items match the current filters'}
+              {statusFilter === 'low'
+                ? 'No low stock items found'
+                : 'No items match the current filters'}
             </div>
           ) : (
             <Table>
@@ -149,13 +178,21 @@ export function InventoryHealthTab({ inventoryHealth, branches, loading }: Inven
                     <TableCell>
                       <div>
                         <div className="font-medium">{item.product_name}</div>
-                        <div className="text-sm text-muted-foreground">{item.variant_label}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {item.variant_label}
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-sm">{item.sku}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {item.sku}
+                    </TableCell>
                     <TableCell>{item.branch_name}</TableCell>
-                    <TableCell className="text-right font-medium">{item.current_stock}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{item.reorder_threshold}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {item.current_stock}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {item.reorder_threshold}
+                    </TableCell>
                     <TableCell>{getStatusBadge(item.status)}</TableCell>
                   </TableRow>
                 ))}
@@ -170,5 +207,5 @@ export function InventoryHealthTab({ inventoryHealth, branches, loading }: Inven
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

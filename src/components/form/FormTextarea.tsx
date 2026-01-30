@@ -1,15 +1,15 @@
-import { useFieldContext } from './hooks';
-import { FormBase, FormBaseProps } from './FormBase';
-import { Textarea } from '@/components/ui/textarea';
+import { useFieldContext } from './hooks'
+import { FormBase } from './FormBase'
+import type { FormBaseProps } from './FormBase';
+import { Textarea } from '@/components/ui/textarea'
 
 type Props = {
   formBaseProps: FormBaseProps
-} & React.ComponentProps<"textarea">
-
+} & React.ComponentProps<'textarea'>
 
 export function FormTextarea({ formBaseProps, ...props }: Props) {
-  const field = useFieldContext<string>();
-  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+  const field = useFieldContext<string>()
+  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
 
   return (
     <FormBase {...formBaseProps}>

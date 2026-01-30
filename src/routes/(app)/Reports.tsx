@@ -1,12 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useNavigate } from '@tanstack/react-router';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useReportsData } from '@/hooks/useReportsData';
-import { OverviewTab } from '@/components/reports/OverviewTab';
-import { InventoryHealthTab } from '@/components/reports/InventoryHealthTab';
-import { InventoryValueTab } from '@/components/reports/InventoryValueTab';
-import { StockMovementsTab } from '@/components/reports/StockMovementsTab';
-import { BarChart3, HeartPulse, DollarSign, ArrowLeftRight } from 'lucide-react';
+import { createFileRoute, useNavigate  } from '@tanstack/react-router'
+import { ArrowLeftRight, BarChart3, DollarSign, HeartPulse } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useReportsData } from '@/hooks/useReportsData'
+import { OverviewTab } from '@/components/reports/OverviewTab'
+import { InventoryHealthTab } from '@/components/reports/InventoryHealthTab'
+import { InventoryValueTab } from '@/components/reports/InventoryValueTab'
+import { StockMovementsTab } from '@/components/reports/StockMovementsTab'
 
 export const Route = createFileRoute('/(app)/reports')({
   component: RouteComponent,
@@ -27,7 +26,7 @@ function RouteComponent() {
     setSelectedBranch,
     dateRange,
     setDateRange,
-  } = useReportsData();
+  } = useReportsData()
 
   return (
     <Tabs defaultValue="overview" className="space-y-6">
@@ -89,5 +88,5 @@ function RouteComponent() {
         />
       </TabsContent>
     </Tabs>
-  );
+  )
 }

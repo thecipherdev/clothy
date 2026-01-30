@@ -1,15 +1,17 @@
-export function toTitleCase(str: string, delimiters: string | string[] = ' ') {
+export function toTitleCase(str: string, delimiters: string | Array<string> = ' ') {
   if (!str) return str
 
   const delimiterArray = Array.isArray(delimiters) ? delimiters : [delimiters]
 
-  const pattern = delimiterArray.map(d => {
-    return d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }).join('|')
+  const pattern = delimiterArray
+    .map((d) => {
+      return d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    })
+    .join('|')
 
-  const regex = new RegExp(`(${pattern})`, 'g');
+  const regex = new RegExp(`(${pattern})`, 'g')
 
-  const parts = str.split(regex);
+  const parts = str.split(regex)
 
   const result = parts.map((part: string) => {
     if (delimiterArray.includes(part)) {

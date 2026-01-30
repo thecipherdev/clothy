@@ -1,25 +1,35 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { createFileRoute, useNavigate  } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import {
+  ArrowLeft,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  Package,
+  Plus,
+  Send,
+  Trash2,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Command,
   CommandEmpty,
@@ -27,13 +37,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from '@/components/ui/command'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+} from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 import {
   Table,
   TableBody,
@@ -41,50 +51,48 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import { ArrowLeft, Plus, Loader2, Trash2, Send, Package, Check, ChevronsUpDown } from 'lucide-react';
+} from '@/components/ui/table'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Supplier {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 interface Branch {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 interface VariantOption {
-  id: string;
-  size: string;
-  color: string;
-  product: { name: string; sku: string };
+  id: string
+  size: string
+  color: string
+  product: { name: string; sku: string }
 }
 
 interface OrderItem {
-  id: string;
-  variant_id: string;
-  quantity_ordered: number;
-  quantity_received: number;
-  unit_price: number;
-  variant: VariantOption;
+  id: string
+  variant_id: string
+  quantity_ordered: number
+  quantity_received: number
+  unit_price: number
+  variant: VariantOption
 }
 
 interface PurchaseOrder {
-  id: string;
-  order_number: string;
-  status: string;
-  order_date: string | null;
-  expected_delivery: string | null;
-  total_amount: number;
-  notes: string | null;
-  supplier_id: string;
-  branch_id: string;
-  supplier: Supplier;
-  branch: Branch;
+  id: string
+  order_number: string
+  status: string
+  order_date: string | null
+  expected_delivery: string | null
+  total_amount: number
+  notes: string | null
+  supplier_id: string
+  branch_id: string
+  supplier: Supplier
+  branch: Branch
 }
 
 export const Route = createFileRoute('/(app)/purchase-orders/$orderId')({
@@ -92,114 +100,120 @@ export const Route = createFileRoute('/(app)/purchase-orders/$orderId')({
 })
 
 function RouteComponent() {
-  const { orderId } = Route.useParams();
-  const navigate = useNavigate();
-  const { user, role } = useAuth();
-  const isNew = orderId === 'new';
+  const { orderId } = Route.useParams()
+  const navigate = useNavigate()
+  const { user, role } = useAuth()
+  const isNew = orderId === 'new'
 
-  const [loading, setLoading] = useState(!isNew);
-  const [submitting, setSubmitting] = useState(false);
-  const [order, setOrder] = useState<PurchaseOrder | null>(null);
-  const [items, setItems] = useState<OrderItem[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [variants, setVariants] = useState<VariantOption[]>([]);
+  const [loading, setLoading] = useState(!isNew)
+  const [submitting, setSubmitting] = useState(false)
+  const [order, setOrder] = useState<PurchaseOrder | null>(null)
+  const [items, setItems] = useState<Array<OrderItem>>([])
+  const [suppliers, setSuppliers] = useState<Array<Supplier>>([])
+  const [branches, setBranches] = useState<Array<Branch>>([])
+  const [variants, setVariants] = useState<Array<VariantOption>>([])
 
   // Form state for new order
-  const [supplierId, setSupplierId] = useState('');
-  const [branchId, setBranchId] = useState('');
-  const [expectedDelivery, setExpectedDelivery] = useState('');
-  const [notes, setNotes] = useState('');
+  const [supplierId, setSupplierId] = useState('')
+  const [branchId, setBranchId] = useState('')
+  const [expectedDelivery, setExpectedDelivery] = useState('')
+  const [notes, setNotes] = useState('')
 
   // Add item dialog
-  const [showAddItemForm, setShowAddItemForm] = useState(false);
-  const [variantSearchOpen, setVariantSearchOpen] = useState(false);
-  const [selectedVariantId, setSelectedVariantId] = useState('');
-  const [itemQuantity, setItemQuantity] = useState(1);
-  const [itemPrice, setItemPrice] = useState(0);
+  const [showAddItemForm, setShowAddItemForm] = useState(false)
+  const [variantSearchOpen, setVariantSearchOpen] = useState(false)
+  const [selectedVariantId, setSelectedVariantId] = useState('')
+  const [itemQuantity, setItemQuantity] = useState(1)
+  const [itemPrice, setItemPrice] = useState(0)
 
   // Receive dialog
-  const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
-  const [receiveQuantities, setReceiveQuantities] = useState<Record<string, number>>({});
+  const [receiveDialogOpen, setReceiveDialogOpen] = useState(false)
+  const [receiveQuantities, setReceiveQuantities] = useState<
+    Record<string, number>
+  >({})
 
   useEffect(() => {
-    fetchSuppliers();
-    fetchBranches();
-    fetchVariants();
+    fetchSuppliers()
+    fetchBranches()
+    fetchVariants()
     if (!isNew && orderId) {
-      fetchOrder(orderId);
+      fetchOrder(orderId)
     }
-  }, [orderId, isNew]);
+  }, [orderId, isNew])
 
   const fetchSuppliers = async () => {
     const { data } = await supabase
       .from('suppliers')
       .select('id, name')
       .eq('is_active', true)
-      .order('name');
-    if (data) setSuppliers(data);
-  };
+      .order('name')
+    if (data) setSuppliers(data)
+  }
 
   const fetchBranches = async () => {
     const { data } = await supabase
       .from('branches')
       .select('id, name')
       .eq('is_active', true)
-      .order('name');
-    if (data) setBranches(data);
-  };
+      .order('name')
+    if (data) setBranches(data)
+  }
 
   const fetchVariants = async () => {
     const { data } = await supabase
       .from('product_variants')
       .select('id, size, color, product:products(name, sku)')
-      .order('created_at');
-    if (data) setVariants(data as unknown as VariantOption[]);
-  };
+      .order('created_at')
+    if (data) setVariants(data as unknown as Array<VariantOption>)
+  }
 
   const fetchOrder = async (orderId: string) => {
     const { data: orderData, error: orderError } = await supabase
       .from('purchase_orders')
-      .select(`
+      .select(
+        `
         *,
         supplier:suppliers(id, name),
         branch:branches(id, name)
-      `)
+      `,
+      )
       .eq('id', orderId)
-      .single();
+      .single()
 
     if (orderError) {
-      toast.error('Failed to load order');
-      navigate({ to: '/purchase-orders' });
-      return;
+      toast.error('Failed to load order')
+      navigate({ to: '/purchase-orders' })
+      return
     }
 
-    setOrder(orderData as unknown as PurchaseOrder);
-    setNotes(orderData.notes || '');
+    setOrder(orderData as unknown as PurchaseOrder)
+    setNotes(orderData.notes || '')
 
     const { data: itemsData } = await supabase
       .from('purchase_order_items')
-      .select(`
+      .select(
+        `
         id,
         variant_id,
         quantity_ordered,
         quantity_received,
         unit_price,
         variant:product_variants(id, size, color, product:products(name, sku))
-      `)
-      .eq('purchase_order_id', orderId);
+      `,
+      )
+      .eq('purchase_order_id', orderId)
 
-    if (itemsData) setItems(itemsData as unknown as OrderItem[]);
-    setLoading(false);
-  };
+    if (itemsData) setItems(itemsData as unknown as Array<OrderItem>)
+    setLoading(false)
+  }
 
   const handleCreateOrder = async () => {
     if (!supplierId || !branchId) {
-      toast.error('Please select supplier and branch');
-      return;
+      toast.error('Please select supplier and branch')
+      return
     }
 
-    setSubmitting(true);
+    setSubmitting(true)
 
     const { data, error } = await supabase
       .from('purchase_orders')
@@ -213,22 +227,22 @@ function RouteComponent() {
         status: 'draft',
       } as any)
       .select()
-      .single();
+      .single()
 
     if (error) {
-      toast.error('Failed to create order');
+      toast.error('Failed to create order')
     } else {
-      toast.success('Order created');
-      navigate({ to: `/purchase-orders/${data.id}` });
+      toast.success('Order created')
+      navigate({ to: `/purchase-orders/${data.id}` })
     }
 
-    setSubmitting(false);
-  };
+    setSubmitting(false)
+  }
 
   const handleAddItem = async () => {
     if (!order || !selectedVariantId || itemQuantity < 1) {
-      toast.error('Please fill all fields');
-      return;
+      toast.error('Please fill all fields')
+      return
     }
 
     const { error } = await supabase.from('purchase_order_items').insert({
@@ -236,57 +250,58 @@ function RouteComponent() {
       variant_id: selectedVariantId,
       quantity_ordered: itemQuantity,
       unit_price: itemPrice,
-    });
+    })
 
     if (error) {
-      toast.error('Failed to add item');
+      toast.error('Failed to add item')
     } else {
       // Update total
-      const newTotal = Number(order.total_amount) + itemQuantity * itemPrice;
+      const newTotal = Number(order.total_amount) + itemQuantity * itemPrice
       await supabase
         .from('purchase_orders')
         .update({ total_amount: newTotal })
-        .eq('id', order.id);
+        .eq('id', order.id)
 
-      toast.success('Item added');
-      setShowAddItemForm(false);
-      setSelectedVariantId('');
-      setItemQuantity(1);
-      setItemPrice(0);
-      fetchOrder(order.id);
+      toast.success('Item added')
+      setShowAddItemForm(false)
+      setSelectedVariantId('')
+      setItemQuantity(1)
+      setItemPrice(0)
+      fetchOrder(order.id)
     }
-  };
+  }
 
   const getSelectedVariant = () => {
-    return variants.find((v) => v.id === selectedVariantId);
-  };
+    return variants.find((v) => v.id === selectedVariantId)
+  }
 
   const handleRemoveItem = async (item: OrderItem) => {
-    if (!order || order.status !== 'draft') return;
+    if (!order || order.status !== 'draft') return
 
     const { error } = await supabase
       .from('purchase_order_items')
       .delete()
-      .eq('id', item.id);
+      .eq('id', item.id)
 
     if (error) {
-      toast.error('Failed to remove item');
+      toast.error('Failed to remove item')
     } else {
-      const newTotal = Number(order.total_amount) - item.quantity_ordered * item.unit_price;
+      const newTotal =
+        Number(order.total_amount) - item.quantity_ordered * item.unit_price
       await supabase
         .from('purchase_orders')
         .update({ total_amount: Math.max(0, newTotal) })
-        .eq('id', order.id);
+        .eq('id', order.id)
 
-      toast.success('Item removed');
-      fetchOrder(order.id);
+      toast.success('Item removed')
+      fetchOrder(order.id)
     }
-  };
+  }
 
   const handleSubmitOrder = async () => {
     if (!order || items.length === 0) {
-      toast.error('Add items before submitting');
-      return;
+      toast.error('Add items before submitting')
+      return
     }
 
     const { error } = await supabase
@@ -295,41 +310,41 @@ function RouteComponent() {
         status: 'ordered',
         order_date: new Date().toISOString().split('T')[0],
       })
-      .eq('id', order.id);
+      .eq('id', order.id)
 
     if (error) {
-      toast.error('Failed to submit order');
+      toast.error('Failed to submit order')
     } else {
-      toast.success('Order submitted to supplier');
-      fetchOrder(order.id);
+      toast.success('Order submitted to supplier')
+      fetchOrder(order.id)
     }
-  };
+  }
 
   const openReceiveDialog = () => {
-    const quantities: Record<string, number> = {};
+    const quantities: Record<string, number> = {}
     items.forEach((item) => {
-      quantities[item.id] = item.quantity_ordered - item.quantity_received;
-    });
-    setReceiveQuantities(quantities);
-    setReceiveDialogOpen(true);
-  };
+      quantities[item.id] = item.quantity_ordered - item.quantity_received
+    })
+    setReceiveQuantities(quantities)
+    setReceiveDialogOpen(true)
+  }
 
   const handleReceiveItems = async () => {
-    if (!order) return;
+    if (!order) return
 
-    setSubmitting(true);
+    setSubmitting(true)
 
     // Update each item's received quantity
     for (const item of items) {
-      const toReceive = receiveQuantities[item.id] || 0;
-      if (toReceive <= 0) continue;
+      const toReceive = receiveQuantities[item.id] || 0
+      if (toReceive <= 0) continue
 
-      const newReceived = item.quantity_received + toReceive;
+      const newReceived = item.quantity_received + toReceive
 
       await supabase
         .from('purchase_order_items')
         .update({ quantity_received: newReceived })
-        .eq('id', item.id);
+        .eq('id', item.id)
 
       // Update inventory
       const { data: inventory } = await supabase
@@ -337,13 +352,13 @@ function RouteComponent() {
         .select('id, quantity')
         .eq('branch_id', order.branch_id)
         .eq('variant_id', item.variant_id)
-        .maybeSingle();
+        .maybeSingle()
 
       if (inventory) {
         await supabase
           .from('inventory')
           .update({ quantity: inventory.quantity + toReceive })
-          .eq('id', inventory.id);
+          .eq('id', inventory.id)
 
         // Record stock movement
         await supabase.from('stock_movements').insert({
@@ -353,7 +368,7 @@ function RouteComponent() {
           reason: `Received from PO ${order.order_number}`,
           performed_by: user?.id,
           reference_id: order.id,
-        });
+        })
       } else {
         // Create inventory record
         const { data: newInventory } = await supabase
@@ -364,7 +379,7 @@ function RouteComponent() {
             quantity: toReceive,
           })
           .select()
-          .single();
+          .single()
 
         if (newInventory) {
           await supabase.from('stock_movements').insert({
@@ -374,7 +389,7 @@ function RouteComponent() {
             reason: `Received from PO ${order.order_number}`,
             performed_by: user?.id,
             reference_id: order.id,
-          });
+          })
         }
       }
     }
@@ -383,44 +398,51 @@ function RouteComponent() {
     const { data: updatedItems } = await supabase
       .from('purchase_order_items')
       .select('quantity_ordered, quantity_received')
-      .eq('purchase_order_id', order.id);
+      .eq('purchase_order_id', order.id)
 
     const allReceived = updatedItems?.every(
-      (i) => i.quantity_received >= i.quantity_ordered
-    );
-    const partialReceived = updatedItems?.some((i) => i.quantity_received > 0);
+      (i) => i.quantity_received >= i.quantity_ordered,
+    )
+    const partialReceived = updatedItems?.some((i) => i.quantity_received > 0)
 
     await supabase
       .from('purchase_orders')
       .update({
-        status: allReceived ? 'received' : partialReceived ? 'partial' : 'ordered',
+        status: allReceived
+          ? 'received'
+          : partialReceived
+            ? 'partial'
+            : 'ordered',
         received_by: user?.id,
       })
-      .eq('id', order.id);
+      .eq('id', order.id)
 
-    toast.success('Items received and inventory updated');
-    setReceiveDialogOpen(false);
-    fetchOrder(order.id);
-    setSubmitting(false);
-  };
+    toast.success('Items received and inventory updated')
+    setReceiveDialogOpen(false)
+    fetchOrder(order.id)
+    setSubmitting(false)
+  }
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+    const variants: Record<
+      string,
+      'default' | 'secondary' | 'destructive' | 'outline'
+    > = {
       draft: 'secondary',
       ordered: 'default',
       partial: 'outline',
       received: 'outline',
       cancelled: 'destructive',
-    };
-    return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
-  };
+    }
+    return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    );
+    )
   }
 
   // New order form
@@ -428,7 +450,10 @@ function RouteComponent() {
     return (
       <div className="flex flex-col gap-4">
         <div className="space-y-6">
-          <Button variant="ghost" onClick={() => navigate({ to: '/purchase-orders' })}>
+          <Button
+            variant="ghost"
+            onClick={() => navigate({ to: '/purchase-orders' })}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
           </Button>
@@ -490,14 +515,16 @@ function RouteComponent() {
               </div>
 
               <Button onClick={handleCreateOrder} disabled={submitting}>
-                {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {submitting && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
                 Create Order
               </Button>
             </CardContent>
           </Card>
         </div>
       </div>
-    );
+    )
   }
 
   // Order detail view
@@ -505,7 +532,10 @@ function RouteComponent() {
     <div>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate({ to: '/purchase-orders' })}>
+          <Button
+            variant="ghost"
+            onClick={() => navigate({ to: '/purchase-orders' })}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
           </Button>
@@ -516,12 +546,13 @@ function RouteComponent() {
                 Submit Order
               </Button>
             )}
-            {(order?.status === 'ordered' || order?.status === 'partial') && role === 'admin' && (
-              <Button onClick={openReceiveDialog}>
-                <Package className="h-4 w-4 mr-2" />
-                Receive Items
-              </Button>
-            )}
+            {(order?.status === 'ordered' || order?.status === 'partial') &&
+              role === 'admin' && (
+                <Button onClick={openReceiveDialog}>
+                  <Package className="h-4 w-4 mr-2" />
+                  Receive Items
+                </Button>
+              )}
           </div>
         </div>
 
@@ -557,7 +588,6 @@ function RouteComponent() {
                 </p>
               </div>
             </div>
-
           </CardContent>
         </Card>
         {order?.status === 'draft' && (
@@ -566,7 +596,10 @@ function RouteComponent() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Product Variant</Label>
-                  <Popover open={variantSearchOpen} onOpenChange={setVariantSearchOpen}>
+                  <Popover
+                    open={variantSearchOpen}
+                    onOpenChange={setVariantSearchOpen}
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -576,10 +609,12 @@ function RouteComponent() {
                       >
                         {selectedVariantId ? (
                           <>
-                            {getSelectedVariant()?.product.name} - {getSelectedVariant()?.size}/{getSelectedVariant()?.color}
+                            {getSelectedVariant()?.product.name} -{' '}
+                            {getSelectedVariant()?.size}/
+                            {getSelectedVariant()?.color}
                           </>
                         ) : (
-                          "Search products..."
+                          'Search products...'
                         )}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -595,14 +630,16 @@ function RouteComponent() {
                                 key={v.id}
                                 value={`${v.product.name} ${v.size} ${v.color}`}
                                 onSelect={() => {
-                                  setSelectedVariantId(v.id);
-                                  setVariantSearchOpen(false);
+                                  setSelectedVariantId(v.id)
+                                  setVariantSearchOpen(false)
                                 }}
                               >
                                 <Check
                                   className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedVariantId === v.id ? "opacity-100" : "opacity-0"
+                                    'mr-2 h-4 w-4',
+                                    selectedVariantId === v.id
+                                      ? 'opacity-100'
+                                      : 'opacity-0',
                                   )}
                                 />
                                 <div>
@@ -626,7 +663,9 @@ function RouteComponent() {
                       type="number"
                       min={1}
                       value={itemQuantity}
-                      onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        setItemQuantity(parseInt(e.target.value) || 1)
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -636,7 +675,9 @@ function RouteComponent() {
                       min={0}
                       step={0.01}
                       value={itemPrice}
-                      onChange={(e) => setItemPrice(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setItemPrice(parseFloat(e.target.value) || 0)
+                      }
                     />
                   </div>
                 </div>
@@ -647,10 +688,10 @@ function RouteComponent() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setShowAddItemForm(false);
-                      setSelectedVariantId('');
-                      setItemQuantity(1);
-                      setItemPrice(0);
+                      setShowAddItemForm(false)
+                      setSelectedVariantId('')
+                      setItemQuantity(1)
+                      setItemPrice(0)
                     }}
                   >
                     Cancel
@@ -683,7 +724,9 @@ function RouteComponent() {
                     <TableRow key={item.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{item.variant.product.name}</div>
+                          <div className="font-medium">
+                            {item.variant.product.name}
+                          </div>
                           <div className="text-sm text-muted-foreground">
                             {item.variant.size} / {item.variant.color}
                           </div>
@@ -691,7 +734,9 @@ function RouteComponent() {
                       </TableCell>
                       <TableCell>{item.quantity_ordered}</TableCell>
                       <TableCell>{item.quantity_received}</TableCell>
-                      <TableCell>${Number(item.unit_price).toFixed(2)}</TableCell>
+                      <TableCell>
+                        ${Number(item.unit_price).toFixed(2)}
+                      </TableCell>
                       <TableCell>
                         ${(item.quantity_ordered * item.unit_price).toFixed(2)}
                       </TableCell>
@@ -722,14 +767,20 @@ function RouteComponent() {
             </DialogHeader>
             <div className="space-y-4 pt-4">
               {items.map((item) => {
-                const remaining = item.quantity_ordered - item.quantity_received;
-                if (remaining <= 0) return null;
+                const remaining = item.quantity_ordered - item.quantity_received
+                if (remaining <= 0) return null
                 return (
-                  <div key={item.id} className="flex items-center justify-between gap-4">
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-4"
+                  >
                     <div className="flex-1">
-                      <div className="font-medium">{item.variant.product.name}</div>
+                      <div className="font-medium">
+                        {item.variant.product.name}
+                      </div>
                       <div className="text-sm text-muted-foreground">
-                        {item.variant.size} / {item.variant.color} ({remaining} pending)
+                        {item.variant.size} / {item.variant.color} ({remaining}{' '}
+                        pending)
                       </div>
                     </div>
                     <Input
@@ -740,26 +791,31 @@ function RouteComponent() {
                       onChange={(e) =>
                         setReceiveQuantities({
                           ...receiveQuantities,
-                          [item.id]: Math.min(parseInt(e.target.value) || 0, remaining),
+                          [item.id]: Math.min(
+                            parseInt(e.target.value) || 0,
+                            remaining,
+                          ),
                         })
                       }
                       className="w-24"
                     />
                   </div>
-                );
+                )
               })}
               <Button
                 onClick={handleReceiveItems}
                 className="w-full"
                 disabled={submitting}
               >
-                {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {submitting && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
                 Confirm Receipt
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
-    </div >
-  );
+    </div>
+  )
 }
