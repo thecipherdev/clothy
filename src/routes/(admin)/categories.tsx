@@ -1,4 +1,4 @@
-import { Navigate, createFileRoute  } from '@tanstack/react-router'
+import { Navigate, createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import * as z from 'zod'
 import { toast } from 'sonner'

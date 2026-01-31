@@ -1,6 +1,6 @@
 import { useFieldContext } from './hooks'
 import { FormBase } from './FormBase'
-import type { FormBaseProps } from './FormBase';
+import type { FormBaseProps } from './FormBase'
 import { Switch } from '@/components/ui/switch'
 
 export function FormSwitch(props: FormBaseProps) {

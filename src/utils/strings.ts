@@ -1,4 +1,7 @@
-export function toTitleCase(str: string, delimiters: string | Array<string> = ' ') {
+export function toTitleCase(
+  str: string,
+  delimiters: string | Array<string> = ' ',
+) {
   if (!str) return str
 
   const delimiterArray = Array.isArray(delimiters) ? delimiters : [delimiters]

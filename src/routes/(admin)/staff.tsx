@@ -1,4 +1,4 @@
-import { Navigate, createFileRoute  } from '@tanstack/react-router'
+import { Navigate, createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Settings, Store, Users } from 'lucide-react'
@@ -84,15 +84,17 @@ function RouteComponent() {
         .from('staff_branches')
         .select('user_id, branch_id')
 
-      const enrichedProfiles: Array<Profile> = (profilesData || []).map((p) => ({
-        ...p,
-        user_roles: (rolesData || [])
-          .filter((r) => r.user_id === p.user_id)
-          .map((r) => ({ role: r.role })),
-        staff_branches: (branchesData || [])
-          .filter((b) => b.user_id === p.user_id)
-          .map((b) => ({ branch_id: b.branch_id })),
-      }))
+      const enrichedProfiles: Array<Profile> = (profilesData || []).map(
+        (p) => ({
+          ...p,
+          user_roles: (rolesData || [])
+            .filter((r) => r.user_id === p.user_id)
+            .map((r) => ({ role: r.role })),
+          staff_branches: (branchesData || [])
+            .filter((b) => b.user_id === p.user_id)
+            .map((b) => ({ branch_id: b.branch_id })),
+        }),
+      )
 
       setProfiles(enrichedProfiles)
     } catch (error) {

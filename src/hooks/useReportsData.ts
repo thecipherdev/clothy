@@ -52,10 +52,12 @@ export function useReportsData() {
   const [branches, setBranches] = useState<Array<Branch>>([])
   const [branchStock, setBranchStock] = useState<Array<BranchStock>>([])
   const [categoryStock, setCategoryStock] = useState<Array<CategoryStock>>([])
-  const [inventoryHealth, setInventoryHealth] = useState<Array<InventoryHealthItem>>(
-    [],
-  )
-  const [stockMovements, setStockMovements] = useState<Array<StockMovementItem>>([])
+  const [inventoryHealth, setInventoryHealth] = useState<
+    Array<InventoryHealthItem>
+  >([])
+  const [stockMovements, setStockMovements] = useState<
+    Array<StockMovementItem>
+  >([])
   const [movementSummary, setMovementSummary] = useState<StockMovementSummary>({
     stock_in: 0,
     stock_out: 0,
@@ -120,14 +122,14 @@ export function useReportsData() {
         branchTotals[branchName].value += item.quantity * price
       })
 
-      const branchStockData: Array<BranchStock> = Object.entries(branchTotals).map(
-        ([name, data]) => ({
-          branch_id: data.id,
-          branch_name: name,
-          total_quantity: data.quantity,
-          total_value: data.value,
-        }),
-      )
+      const branchStockData: Array<BranchStock> = Object.entries(
+        branchTotals,
+      ).map(([name, data]) => ({
+        branch_id: data.id,
+        branch_name: name,
+        total_quantity: data.quantity,
+        total_value: data.value,
+      }))
       setBranchStock(branchStockData)
     } catch (error) {
       console.error('Error fetching branch stock:', error)

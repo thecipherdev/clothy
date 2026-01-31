@@ -16,12 +16,15 @@ import {
 import { ProductTopInfo } from '@/features/products/components/ProductTopInfo'
 import { useGetProduct, useVariants } from '@/features/products/model/queries'
 
-
 const Route = getRouteApi('/(app)/products/$productId')
 
 export function ProductDetails() {
   const { productId } = Route.useParams()
-  const { data: productData, isLoading: isProductLoading, isError: isProductError } = useGetProduct(productId)
+  const {
+    data: productData,
+    isLoading: isProductLoading,
+    isError: isProductError,
+  } = useGetProduct(productId)
   const { data: variantsData } = useVariants(productId)
   const navigate = useNavigate()
 
@@ -130,4 +133,3 @@ export function ProductDetails() {
     </div>
   )
 }
-

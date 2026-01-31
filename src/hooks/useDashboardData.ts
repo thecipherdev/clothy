@@ -43,7 +43,9 @@ export function useDashboardData() {
     nextDelivery: null,
   })
   const [lowStockItems, setLowStockItems] = useState<Array<LowStockItem>>([])
-  const [recentMovements, setRecentMovements] = useState<Array<RecentMovement>>([])
+  const [recentMovements, setRecentMovements] = useState<Array<RecentMovement>>(
+    [],
+  )
   const [pendingOrders, setPendingOrders] = useState<Array<PendingOrder>>([])
   const [loading, setLoading] = useState(true)
 
@@ -136,14 +138,16 @@ export function useDashboardData() {
         )
 
         // Process pending orders
-        const mappedOrders: Array<PendingOrder> = (orders || []).map((o: any) => ({
-          id: o.id,
-          order_number: o.order_number,
-          supplier_name: o.supplier?.name || 'Unknown',
-          expected_delivery: o.expected_delivery,
-          total_amount: o.total_amount,
-          status: o.status,
-        }))
+        const mappedOrders: Array<PendingOrder> = (orders || []).map(
+          (o: any) => ({
+            id: o.id,
+            order_number: o.order_number,
+            supplier_name: o.supplier?.name || 'Unknown',
+            expected_delivery: o.expected_delivery,
+            total_amount: o.total_amount,
+            status: o.status,
+          }),
+        )
 
         // Find next delivery date
         const nextDelivery =

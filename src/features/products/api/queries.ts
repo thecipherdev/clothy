@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { setResponseStatus } from '@tanstack/react-start/server'
-import { ProductInputSchema, IDSchema } from '../types/schema'
+import { IDSchema, ProductInputSchema } from '../types/schema'
 import { supabase } from '@/integrations/supabase/client'
 
 export const getVariantsData = createServerFn({ method: 'GET' })
@@ -24,7 +24,7 @@ export const getVariantsData = createServerFn({ method: 'GET' })
       .order('color')
 
     if (variantError) {
-      console.log('Database Error:', variantError);
+      console.log('Database Error:', variantError)
       setResponseStatus(500)
       throw new Error('Failed to fetch products')
     }
@@ -41,13 +41,12 @@ export const getProductData = createServerFn({ method: 'GET' })
       .maybeSingle()
 
     if (productError) {
-      console.log('Database Error:', productError);
+      console.log('Database Error:', productError)
       setResponseStatus(500)
       throw new Error('Failed to fetch products')
     }
 
     return { data: productData }
-
   })
 
 export const getProductsData = createServerFn({ method: 'GET' })
@@ -72,14 +71,12 @@ export const getProductsData = createServerFn({ method: 'GET' })
     return { data: products }
   })
 
-
-export const getCategoriesData = createServerFn({ method: 'GET' })
-  .handler(async () => {
-    let { data: categories, error } = await supabase
+export const getCategoriesData = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const { data: categories, error } = await supabase
       .from('categories')
       .select('id, name')
       .order('name')
-
 
     if (error) {
       console.error('Database Error:', error)
@@ -88,4 +85,5 @@ export const getCategoriesData = createServerFn({ method: 'GET' })
     }
 
     return { data: categories }
-  })
+  },
+)

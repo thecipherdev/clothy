@@ -1,6 +1,6 @@
 import { FormBase } from './FormBase'
 import { useFieldContext } from './hooks'
-import type { FormBaseProps } from './FormBase';
+import type { FormBaseProps } from './FormBase'
 import { Input } from '@/components/ui/input'
 
 type Props = {

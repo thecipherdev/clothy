@@ -1,6 +1,13 @@
-import { Select, SelectItem, SelectTrigger, SelectContent, SelectValue } from '@/components/ui/select';
-import { Branch } from '../types'
-import { useInvetoryContext } from '../context/InventoryContext';
+import { useInvetoryContext } from '../context/InventoryContext'
+import type { Branch } from '../types'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
 interface Props {
   branches: Array<Branch> | null | undefined
   branchId: string
@@ -9,7 +16,10 @@ interface Props {
 export function TableSelect({ branches, branchId }: Props) {
   const { updateFilter } = useInvetoryContext()
   return (
-    <Select value={branchId} onValueChange={(value) => updateFilter('branchId', value)}>
+    <Select
+      value={branchId}
+      onValueChange={(value) => updateFilter('branchId', value)}
+    >
       <SelectTrigger className="w-[150px]">
         <SelectValue placeholder="All branches" />
       </SelectTrigger>
@@ -23,4 +33,4 @@ export function TableSelect({ branches, branchId }: Props) {
       </SelectContent>
     </Select>
   )
-} 
+}

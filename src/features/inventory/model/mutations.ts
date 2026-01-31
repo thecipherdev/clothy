@@ -1,18 +1,16 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from 'sonner';
-import { createMovement } from "../api/mutations";
-import { StockMovementFormData } from '../types/schema';
-
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { createMovement } from '../api/mutations'
+import type { StockMovementFormData } from '../types/schema'
 
 export const useStockAdjustment = (adjustmentType: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (stock: StockMovementFormData) => (
+    mutationFn: (stock: StockMovementFormData) =>
       createMovement({
-        data: stock
-      })
-    ),
+        data: stock,
+      }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['inventory'] })
       toast.success(
@@ -22,6 +20,6 @@ export const useStockAdjustment = (adjustmentType: string) => {
     onError: (error) => {
       console.log(error)
       toast.error(error.message || 'Failed to adjust stock')
-    }
+    },
   })
 }

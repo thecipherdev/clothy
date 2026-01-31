@@ -1,16 +1,16 @@
-import { AlertTriangle, Boxes, PackagePlus, Search } from 'lucide-react';
+import { AlertTriangle, Boxes, PackagePlus, Search } from 'lucide-react'
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CardHeader, CardTitle } from '@/components/ui/card';
-import { Branch } from '../types'
-import { useInvetoryContext } from '../context/InventoryContext';
-import { TableSelect } from './TableSelect';
-import { SearchParamsType } from '../types/schema';
+import { useInvetoryContext } from '../context/InventoryContext'
+import { TableSelect } from './TableSelect'
+import type { Branch } from '../types'
+import type { SearchParamsType } from '../types/schema'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ToolbarProps {
-  branches: Array<Branch> | null | undefined;
-  searchParams: SearchParamsType;
+  branches: Array<Branch> | null | undefined
+  searchParams: SearchParamsType
 }
 
 export function InventoryToolbar({ branches, searchParams }: ToolbarProps) {
@@ -32,7 +32,10 @@ export function InventoryToolbar({ branches, searchParams }: ToolbarProps) {
               className="pl-9 w-[180px]"
             />
           </div>
-          <TableSelect branches={branches} branchId={searchParams.branchId ?? 'all'} />
+          <TableSelect
+            branches={branches}
+            branchId={searchParams.branchId ?? 'all'}
+          />
           <ButtonGroup />
         </div>
       </div>
@@ -64,7 +67,6 @@ function ButtonGroup() {
         <PackagePlus className="h-4 w-4 mr-1" />
         Add Stock
       </Button>
-
     </>
   )
 }

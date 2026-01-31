@@ -3,10 +3,9 @@ import {
   BarChart3,
   Boxes,
   LayoutDashboard,
-  ShoppingBag
+  ShoppingBag,
 } from 'lucide-react'
-import type {
-  LucideIcon} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react'
 
 interface NavItem {
   title: string

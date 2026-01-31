@@ -1,22 +1,21 @@
+import { useProductContext } from '../context/ProductContext'
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
-import { useProductContext } from '../context/ProductContext'
 
 export function TableSelect({
   category_id,
-  items
+  items,
 }: {
   category_id: string
-  items: { name: string, id: string }[] | null | undefined
+  items: Array<{ name: string; id: string }> | null | undefined
 }) {
   const { updateFilter } = useProductContext()
   return (
-
     <Select
       value={category_id}
       onValueChange={(value) => updateFilter('category_id', value)}

@@ -1,6 +1,7 @@
 import { useFieldContext } from './hooks'
 import { FormBase } from './FormBase'
-import type { FormBaseProps } from './FormBase';
+import type { FormBaseProps } from './FormBase'
+import type { Category } from '@/features/products/types'
 import {
   Select,
   SelectContent,
@@ -8,8 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Category } from '@/features/products/types';
-
 
 type Props = {
   items: Array<Category>
