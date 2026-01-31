@@ -1,27 +1,29 @@
 import { useQuery } from '@tanstack/react-query'
-import { getCategoriesData, getProductsData, getProductData, getVariantsData } from '../api/queries'
-
+import {
+  getCategoriesData,
+  getProductData,
+  getProductsData,
+  getVariantsData,
+} from '../api/queries'
 
 export const useGetProduct = (id: string) => {
   return useQuery({
     queryKey: ['products', id],
-    queryFn: () => (
-      getProductData({ data: { id } })
-    ),
-    enabled: !!id
-
+    queryFn: () => getProductData({ data: { id } }),
+    enabled: !!id,
   })
 }
 
 export const useVariants = (id: string) => {
   return useQuery({
     queryKey: ['variants'],
-    queryFn: () => getVariantsData({
-      data: {
-        id: id
-      }
-    }),
-    enabled: !!id
+    queryFn: () =>
+      getVariantsData({
+        data: {
+          id: id,
+        },
+      }),
+    enabled: !!id,
   })
 }
 
@@ -40,6 +42,6 @@ export const useProducts = () => {
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
-    queryFn: () => getCategoriesData()
+    queryFn: () => getCategoriesData(),
   })
 }

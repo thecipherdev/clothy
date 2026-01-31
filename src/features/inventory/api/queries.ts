@@ -3,8 +3,8 @@ import { setResponseStatus } from '@tanstack/react-start/server'
 
 import { supabase } from '@/integrations/supabase/client'
 
-export const getBranchesData = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const getBranchesData = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const { data, error } = await supabase
       .from('branches')
       .select('id, name')
@@ -18,11 +18,11 @@ export const getBranchesData = createServerFn({ method: 'GET' })
     }
 
     return { data }
-  })
+  },
+)
 
-
-export const getInventoryData = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const getInventoryData = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const { data, error } = await supabase
       .from('inventory')
       .select(
@@ -48,5 +48,5 @@ export const getInventoryData = createServerFn({ method: 'GET' })
     }
 
     return { data }
-  })
-
+  },
+)

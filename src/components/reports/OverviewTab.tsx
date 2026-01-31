@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { UseNavigateResult } from '@tanstack/react-router';
+import type { UseNavigateResult } from '@tanstack/react-router'
 import type { BranchStock, CategoryStock } from '@/hooks/useReportsData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

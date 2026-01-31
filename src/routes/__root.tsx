@@ -11,7 +11,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
-import type { NavKey } from '@/components/layout/navLinks';
+import type { NavKey } from '@/components/layout/navLinks'
 
 import type { QueryClient } from '@tanstack/react-query'
 import { navLinks } from '@/components/layout/navLinks'

@@ -143,9 +143,9 @@ function RouteComponent() {
   const [variantId, setVariantId] = useState('')
   const [fromBranchId, setFromBranchId] = useState('')
 
-  const [inventoryOptions, setInventoryOptions] = useState<Array<InventoryOption>>(
-    [],
-  )
+  const [inventoryOptions, setInventoryOptions] = useState<
+    Array<InventoryOption>
+  >([])
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {

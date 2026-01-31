@@ -1,27 +1,27 @@
-import { Link } from '@tanstack/react-router';
-import { ShoppingBag, Pencil, Eye } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Product } from "../types";
+import { Link } from '@tanstack/react-router'
+import { Eye, Pencil, ShoppingBag } from 'lucide-react'
+import type { Product } from '../types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Table,
+  TableBody,
+  TableCell,
+  TableHead,
   TableHeader,
   TableRow,
-  TableHead,
-  TableBody,
-  TableCell
 } from '@/components/ui/table'
 
 interface ProductTableProps {
-  products: Product[] | undefined
-  isLoading: boolean;
+  products: Array<Product> | undefined
+  isLoading: boolean
   handleOpenDialog: (product: Product) => void
 }
 
 export function ProductTable({
   products,
   isLoading,
-  handleOpenDialog
+  handleOpenDialog,
 }: ProductTableProps) {
   if (isLoading) {
     return (
@@ -55,24 +55,16 @@ export function ProductTable({
       <TableBody>
         {products?.map((product) => (
           <TableRow key={product.id}>
-            <TableCell className="font-mono text-sm">
-              {product.sku}
-            </TableCell>
-            <TableCell className="font-medium">
-              {product.name}
-            </TableCell>
+            <TableCell className="font-mono text-sm">{product.sku}</TableCell>
+            <TableCell className="font-medium">{product.name}</TableCell>
             <TableCell>
               {product.categories?.name || (
-                <span className="text-muted-foreground">
-                  Uncategorized
-                </span>
+                <span className="text-muted-foreground">Uncategorized</span>
               )}
             </TableCell>
             <TableCell>${product.price.toFixed(2)}</TableCell>
             <TableCell>
-              <Badge
-                variant={product.is_active ? 'default' : 'secondary'}
-              >
+              <Badge variant={product.is_active ? 'default' : 'secondary'}>
                 {product.is_active ? 'Active' : 'Inactive'}
               </Badge>
             </TableCell>

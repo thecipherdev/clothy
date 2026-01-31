@@ -1,6 +1,6 @@
-import { supabase } from '@/integrations/supabase/client'
 import { createServerFn } from '@tanstack/react-start'
 import { StockMovementForm } from '../types/schema'
+import { supabase } from '@/integrations/supabase/client'
 
 export const createMovement = createServerFn({ method: 'POST' })
   .inputValidator(StockMovementForm)
@@ -11,7 +11,7 @@ export const createMovement = createServerFn({ method: 'POST' })
       p_movement_qty: data.quantity,
       p_performed_by: '2214933b-7c33-480e-9177-5b53a1e8d2d0',
       p_movement_type: data.momvement_type,
-      p_reason: data.reason || ''
+      p_reason: data.reason || '',
     })
 
     if (error) {
@@ -21,5 +21,3 @@ export const createMovement = createServerFn({ method: 'POST' })
 
     return { success: true }
   })
-
-

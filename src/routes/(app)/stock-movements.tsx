@@ -192,10 +192,11 @@ function RouteComponent() {
                     </Badge>
                   </TableCell>
                   <TableCell
-                    className={`font-medium ${movement.movement_type.includes('in')
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                      }`}
+                    className={`font-medium ${
+                      movement.movement_type.includes('in')
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}
                   >
                     {movement.movement_type.includes('in') ? '+' : ''}
                     {movement.quantity}

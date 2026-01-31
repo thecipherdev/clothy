@@ -1,9 +1,12 @@
 import { useFieldContext } from './hooks'
 import { FormBase } from './FormBase'
-import type { FormBaseProps } from './FormBase';
+import type { FormBaseProps } from './FormBase'
 import { Badge } from '@/components/ui/badge'
 
-type Props = FormBaseProps & { items: Array<string>; handleClick: (i: string) => void }
+type Props = FormBaseProps & {
+  items: Array<string>
+  handleClick: (i: string) => void
+}
 
 export function FormBadgeSelect({ items, handleClick, ...props }: Props) {
   const field = useFieldContext<string>()

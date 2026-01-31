@@ -1,23 +1,23 @@
-import { PropsWithChildren } from "react"
-import { Search, ShoppingBag } from "lucide-react"
-import { TableSelect } from "./TableSelect"
-import { Input } from "@/components/ui/input"
-import { CardHeader, CardTitle } from "@/components/ui/card"
-import { UseAppForm } from "@/types/form"
-import { ProductDialog } from "./ProductDialog"
-import { useProductContext } from "../context/ProductContext"
+import { Search, ShoppingBag } from 'lucide-react'
+import { useProductContext } from '../context/ProductContext'
+import { TableSelect } from './TableSelect'
+import { ProductDialog } from './ProductDialog'
+import type { PropsWithChildren } from 'react'
+import type { UseAppForm } from '@/types/form'
+import { Input } from '@/components/ui/input'
+import { CardHeader, CardTitle } from '@/components/ui/card'
 
 type Item = {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 type ProductToolbarProps = {
-  searchParams: any;
-  categories: Item[] | null | undefined;
-  handleOpenDialog: () => void;
-  sizes: string[];
-  colors: string[];
+  searchParams: any
+  categories: Array<Item> | null | undefined
+  handleOpenDialog: () => void
+  sizes: Array<string>
+  colors: Array<string>
   form: UseAppForm
 } & PropsWithChildren
 
@@ -27,7 +27,7 @@ export function ProductToolbar({
   handleOpenDialog,
   sizes,
   colors,
-  form
+  form,
 }: ProductToolbarProps) {
   const { updateFilter } = useProductContext()
 

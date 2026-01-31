@@ -24,4 +24,3 @@ export interface ProductVariant {
     branch: { name: string }
   }>
 }
-

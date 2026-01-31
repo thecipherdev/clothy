@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate  } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ArrowLeftRight, BarChart3, DollarSign, HeartPulse } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useReportsData } from '@/hooks/useReportsData'

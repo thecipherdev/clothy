@@ -3,7 +3,6 @@ export interface Branch {
   name: string
 }
 
-
 export interface InventoryItem {
   id: string
   quantity: number
@@ -16,4 +15,3 @@ export interface InventoryItem {
     product: { id: string; name: string; sku: string }
   }
 }
-

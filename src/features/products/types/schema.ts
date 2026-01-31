@@ -15,7 +15,7 @@ export const formSchema = z.object({
 })
 
 export const IDSchema = z.object({
-  id: z.string()
+  id: z.string(),
 })
 
 export const ProductInputSchema = z.object({
@@ -42,4 +42,3 @@ export const SearchParams = z.object({
   category_id: z.string().optional(),
   prod_sku: z.string().optional(),
 })
-

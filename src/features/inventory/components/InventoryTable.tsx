@@ -1,23 +1,32 @@
-import { Boxes, Minus, Plus } from "lucide-react";
-import { InventoryItem } from "../types";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Boxes, Minus, Plus } from 'lucide-react'
+import type { InventoryItem } from '../types'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 interface Props {
-  isLoadingInventory: boolean;
-  inventory: InventoryItem[] | undefined
+  isLoadingInventory: boolean
+  inventory: Array<InventoryItem> | undefined
   handleAdjustStock: (item: InventoryItem, type: 'in' | 'out') => void
 }
 
-export function InventoryTable({ isLoadingInventory, inventory, handleAdjustStock }: Props) {
-
+export function InventoryTable({
+  isLoadingInventory,
+  inventory,
+  handleAdjustStock,
+}: Props) {
   if (isLoadingInventory) {
     return (
-      <div className="flex items-center justify-center h-32" >
+      <div className="flex items-center justify-center h-32">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
       </div>
-
     )
   }
 
@@ -47,9 +56,7 @@ export function InventoryTable({ isLoadingInventory, inventory, handleAdjustStoc
           <TableRow key={item.id}>
             <TableCell>
               <div>
-                <p className="font-medium">
-                  {item.variant?.product?.name}
-                </p>
+                <p className="font-medium">{item.variant?.product?.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {item.variant?.product?.sku}
                 </p>
@@ -62,9 +69,7 @@ export function InventoryTable({ isLoadingInventory, inventory, handleAdjustStoc
               </div>
             </TableCell>
             <TableCell>{item.branch?.name}</TableCell>
-            <TableCell className="font-medium">
-              {item.quantity}
-            </TableCell>
+            <TableCell className="font-medium">{item.quantity}</TableCell>
             <TableCell>
               {item.quantity < item.low_stock_threshold ? (
                 <Badge variant="destructive">Low Stock</Badge>

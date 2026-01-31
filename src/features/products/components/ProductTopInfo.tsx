@@ -1,16 +1,12 @@
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Product } from '../types';
-
-
+import type { Product } from '../types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface ProductTopInfoProps {
-  product: Product;
+  product: Product
 }
 
-export function ProductTopInfo({
-  product
-}: ProductTopInfoProps) {
+export function ProductTopInfo({ product }: ProductTopInfoProps) {
   return (
     <Card>
       <CardHeader>
@@ -27,24 +23,17 @@ export function ProductTopInfo({
       <CardContent>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">
-              Price
-            </p>
-            <p className="text-lg font-semibold">
-              ${product.price.toFixed(2)}
-            </p>
+            <p className="text-sm font-medium text-muted-foreground">Price</p>
+            <p className="text-lg font-semibold">${product.price.toFixed(2)}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">
               Description
             </p>
-            <p className="text-sm">
-              {product.description || 'No description'}
-            </p>
+            <p className="text-sm">{product.description || 'No description'}</p>
           </div>
         </div>
       </CardContent>
     </Card>
-
   )
 }

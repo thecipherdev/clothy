@@ -3,7 +3,6 @@ import { toast } from 'sonner'
 import { createProduct, updateProduct } from '../api/mutations'
 import type { ProductFormData } from '../types/schema'
 
-
 export const useCreateProduct = () => {
   const queryClient = useQueryClient()
 

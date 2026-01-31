@@ -1,23 +1,20 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { supabase } from '@/integrations/supabase/client'
 
-import { useAppForm } from '@/components/form/hooks'
-import { Card, CardContent } from '@/components/ui/card'
 
 import { ProductToolbar } from '@products/components/ProductToolbar'
 import { ProductTable } from '@products/components/ProductTable'
 
-import {
-  useCreateProduct,
-  useUpdateProduct,
-} from '@products/model/mutations'
+import { useCreateProduct, useUpdateProduct } from '@products/model/mutations'
 import { useCategories, useProducts } from '@products/model/queries'
 
 import { formSchema } from '@products/types/schema'
-import { UseAppForm } from '@/types/form'
+import { useProductContext } from '@products/context/ProductContext'
 import type { Product } from '@products/types'
-import { useProductContext } from '@products/context/ProductContext';
+import type { UseAppForm } from '@/types/form'
+import { Card, CardContent } from '@/components/ui/card'
+import { useAppForm } from '@/components/form/hooks'
+import { supabase } from '@/integrations/supabase/client'
 
 import { useGlobalContext } from '@/context/GlobalContext'
 
@@ -35,7 +32,7 @@ const COLORS = [
   'Pink',
 ]
 
-const Route = getRouteApi("/(app)/products/")
+const Route = getRouteApi('/(app)/products/')
 
 export function ProductPage() {
   const searchParams = Route.useSearch()
@@ -104,7 +101,8 @@ export function ProductPage() {
 
   const filteredProducts = products?.data?.filter((product) => {
     const searchTerm = searchParams.prod_sku?.toLowerCase()
-    const matchesSearch = !searchTerm ||
+    const matchesSearch =
+      !searchTerm ||
       product.name.toLowerCase().includes(searchTerm) ||
       product.sku.toLowerCase().includes(searchTerm)
     const matchesCategory =
